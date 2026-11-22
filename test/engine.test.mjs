@@ -189,6 +189,17 @@ describe('presentation', () => {
     assert.equal(A.lines[0].words.length, 0);
     assert.ok(sameGroup(A, 'peace', 'lease'));
   });
+  test('the rhyme-types example keeps every rhyme on its own line', () => {
+    const text = 'Perfect: the tail is correct\nNear: the coda grew a beard\nAssonance: vowels, not consonants: a pal in a cab\nMulti: words that line up, sultry';
+    const A = E.analyse(text);
+    A.groups.forEach(g => assert.equal(g.firstLine, g.lastLine, `group /${g.key}/ spans lines`));
+    assert.equal(A.lines.map(l => l.scheme).join(''), 'ABCD');
+    assert.equal(syl(A, 'correct', 1).tier, PERFECT);
+    assert.equal(syl(A, 'beard').tier, NEAR);
+    assert.equal(syl(A, 'pal').tier, ASSONANCE);
+    assert.equal(A.stats.longest.a, 'Multi');
+    assert.equal(A.stats.longest.b, 'sultry');
+  });
   test('analysis is pure: same input, same output', () => {
     const a = E.analyse(SAMPLE), b = E.analyse(SAMPLE);
     assert.deepEqual(a.stats, b.stats);

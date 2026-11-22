@@ -78,7 +78,7 @@
     "tryna": ['T R AY1 N AH0', 'trying to'], "y'all": ['Y AO1 L', 'you all'], "nah": ['N AA1', 'no'],
     "gon": ['G AA1 N', 'going'], "ol'": ['OW1 L', 'old'], "o'": ['AH0', 'of'], "'n'": ['AH0 N', 'and'],
     "n'": ['AH0 N', 'and'], "thru": ['TH R UW1', 'through'], "wit": ['W IH1 TH', 'with'],
-    "yo": ['Y OW1', null], "ain't": ['EY1 N T', null], "nothin": ['N AH1 TH IH0 N', 'nothing']
+    "yo": ['Y OW1', null], "assonance": ['AE1 S AH0 N AH0 N S', null], "assonant": ['AE1 S AH0 N AH0 N T', null], "ain't": ['EY1 N T', null], "nothin": ['N AH1 TH IH0 N', 'nothing']
   };
 
   function normalise(w) {
@@ -609,7 +609,7 @@
         rhyming,
         share: all.length ? rhyming / all.length : 0,
         groups: groups.length,
-        longest: longest ? { len: longest.len, a: wordsOf(lines, longest.a), b: wordsOf(lines, longest.b) } : null,
+        longest: longest ? { len: longest.len, a: wordsOf(lines, longest.a), b: wordsOf(lines, longest.b), aId: longest.a[0].id, bId: longest.b[0].id } : null,
         density: rhymeDensity(lines),
         guessed: lines.reduce((n, L) => n + L.words.filter(w => w.src === 'guess').length, 0)
       }

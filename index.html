@@ -123,6 +123,7 @@ select.text-btn { appearance: none; padding-right: 26px; background-image: linea
 .legend .k.solid { background: oklch(var(--fill-l) var(--fill-c) 230); }
 .legend .k.soft { background: color-mix(in oklch, oklch(var(--fill-l) var(--fill-c) 230) var(--soft-a), transparent); color: var(--ink); }
 .legend .k.multi { color: var(--ink); background: none; box-shadow: inset 0 -3px 0 oklch(var(--bar-l) var(--bar-c) 50); border-radius: 0; }
+.legend .tip { margin-left: auto; color: var(--ink-3); }
 .legend .k.guess { color: var(--ink); background: none; text-decoration: underline dotted var(--ink-3); text-underline-offset: 3px; }
 
 /* ---------- the verse ---------- */
@@ -272,19 +273,43 @@ input[type="range"] { accent-color: var(--accent); }
 .list .pair { font: 13px/1.35 var(--f-mono); color: var(--ink); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .empty { font-size: 13px; color: var(--ink-3); margin: 0; }
 
-/* ---------- inspector (details of the hovered syllable) ---------- */
-.inspector {
-  position: sticky; bottom: 0; z-index: 2; border-top: 1px solid var(--rule); background: var(--sheet);
-  border-radius: 0 0 14px 14px; padding: 10px 16px 12px; min-height: 64px; font-size: 13px; color: var(--ink-2);
-  display: flex; gap: 6px 22px; flex-wrap: wrap; align-items: baseline;
+/* ---------- hover card ---------- */
+.pop {
+  position: fixed; z-index: 40; width: max-content; max-width: min(360px, calc(100vw - 24px));
+  background: var(--sheet); color: var(--ink); border: 1px solid var(--rule);
+  border-top: 4px solid var(--pc, var(--ink-3)); border-radius: 12px; padding: 12px 16px 13px;
+  box-shadow: 0 22px 48px -14px rgb(0 0 0 / .45), 0 2px 6px rgb(0 0 0 / .08);
+  pointer-events: none; font-size: 13px; animation: pop-in .12s ease-out;
 }
-.sheet-card.editing .inspector { display: none; }
-.inspector .w { font: 600 16px/1.3 var(--f-mono); color: var(--ink); }
-.inspector .ipa { font: 15px/1.3 var(--f-mono); color: var(--ink-2); margin-left: 8px; font-weight: 400; }
-.inspector .facts { display: flex; flex-wrap: wrap; gap: 4px 18px; }
-.inspector .facts span b { font-weight: 500; color: var(--ink-3); margin-right: 6px; }
-.inspector .m { font-family: var(--f-mono); color: var(--ink); }
-.inspector .idle { color: var(--ink-3); }
+.pop.g { --pc: oklch(var(--bar-l) var(--bar-c) var(--h)); }
+.pop[hidden] { display: none; }
+@keyframes pop-in { from { opacity: 0; transform: translateY(var(--dy, 4px)); } to { opacity: 1; transform: none; } }
+.pop::after {
+  content: ""; position: absolute; left: var(--ax, 50%); width: 12px; height: 12px; margin-left: -6px;
+  background: var(--sheet); border: 1px solid var(--rule); transform: rotate(45deg);
+}
+.pop.above::after { bottom: -7px; border-top: 0; border-left: 0; }
+.pop.below::after { top: -10px; border-bottom: 0; border-right: 0; background: var(--pc, var(--ink-3)); border-color: var(--pc, var(--ink-3)); }
+.pop .hd { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.pop .w { font: 600 20px/1.2 var(--f-mono); }
+.pop .ipa { font: 18px/1.2 var(--f-mono); color: var(--ink-2); }
+.pop dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 14px; margin: 10px 0 0; }
+.pop dt { color: var(--ink-3); }
+.pop dd { margin: 0; }
+.pop .m { font-family: var(--f-mono); }
+.pop .tag { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 12px; font-weight: 600; background: color-mix(in oklch, var(--pc, var(--ink-3)) 22%, transparent); }
+@media (prefers-reduced-motion: reduce) { .pop { animation: none; } }
+
+.syl.flash, .sch.flash { animation: flash 1.1s ease-out; }
+@keyframes flash {
+  0%, 30% { box-shadow: 0 0 0 5px oklch(var(--bar-l) var(--bar-c) var(--h, 250) / .6); }
+  100% { box-shadow: 0 0 0 2px oklch(var(--bar-l) var(--bar-c) var(--h, 250) / 0); }
+}
+.reading.jump { cursor: pointer; text-align: left; border: 0; background: none; font: inherit; color: inherit; border-left: 1px solid var(--rule); border-radius: 0; }
+.reading.jump:hover b { color: var(--accent); }
+.reading.jump:not(:disabled) small::after { content: "  Show me →"; color: var(--accent); white-space: nowrap; }
+.reading.jump:disabled { cursor: default; }
+.sch.g { cursor: pointer; }
 
 /* ---------- notes ---------- */
 .notes { margin-top: 20px; }
@@ -324,7 +349,7 @@ input[type="range"] { accent-color: var(--accent); }
         </svg>
         Rhyme X-ray
       </h1>
-      <p>Paste a verse to see its rhymes syllable by syllable. It picks up the multisyllabic, internal and slant rhymes that end-rhyme checkers miss.</p>
+      <p>Search for a song or paste a verse, and see every rhyme syllable by syllable, including the multisyllabic, internal and slant rhymes that end-rhyme checkers miss.</p>
     </div>
     <div class="top-actions">
       <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme" title="Theme">
@@ -369,7 +394,7 @@ input[type="range"] { accent-color: var(--accent); }
   <section class="readings" aria-label="Readings">
     <div class="reading"><b id="rShare">–</b><span>syllables rhyme</span><small id="rShareSub">&nbsp;</small></div>
     <div class="reading"><b id="rGroups">–</b><span>rhyme groups</span><small id="rGroupsSub">&nbsp;</small></div>
-    <div class="reading wide"><b id="rMulti">–</b><span>longest multisyllabic rhyme</span><small id="rMultiSub">&nbsp;</small></div>
+    <button type="button" class="reading wide jump" id="rLongest" title="Show this rhyme in the verse"><b id="rMulti">–</b><span>longest multisyllabic rhyme</span><small id="rMultiSub">&nbsp;</small></button>
     <div class="reading" title="Average length of each word's longest matching vowel run (Malmi et al. 2016). The DopeLearning study measured 0.87–1.19 across 94 artists' full catalogues."><b id="rDensity">–</b><span>rhyme density</span><small>Raplyzer measure; rappers score 0.87–1.19</small></div>
   </section>
 
@@ -400,12 +425,12 @@ input[type="range"] { accent-color: var(--accent); }
         <span><i class="k soft">sit</i> vowel only (assonance)</span>
         <span><i class="k multi">wheels a-spin</i> multisyllabic run</span>
         <span><i class="k guess">skrrt</i> sound guessed from spelling</span>
+        <span class="tip">Hover or tap a syllable for its sounds</span>
       </div>
       <div class="stage" id="stage">
         <div id="lanes" aria-hidden="true"></div>
         <ol class="lyric" id="lyric"></ol>
       </div>
-      <div class="inspector" id="inspector" aria-live="polite"><span class="idle">Hover or tap a coloured syllable to see its sounds in IPA and what it rhymes with.</span></div>
       <div class="editor">
         <textarea id="input" spellcheck="false" aria-label="Lyrics">A little grease always keeps the wheels a-spinnin'
 Like sitting on twenty threes to get the squealers grinnin'</textarea>
@@ -460,6 +485,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   </section>
 </div>
 
+<div class="pop" id="pop" role="tooltip" hidden></div>
 
 <script src="engine.js"></script>
 <script>
@@ -467,8 +493,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   'use strict';
   const E = window.RhymeEngine;
   const $ = id => document.getElementById(id);
-  const card = $('card'), lyric = $('lyric'), lanes = $('lanes'), stage = $('stage'), ta = $('input'), insp = $('inspector');
-  const IDLE = insp.innerHTML;
+  const card = $('card'), lyric = $('lyric'), lanes = $('lanes'), stage = $('stage'), ta = $('input'), pop = $('pop');
 
   // 14 colours: 12 hues 30° apart plus two lightness variants. Indices come from the engine.
   const HUES = [20, 50, 80, 110, 140, 170, 200, 230, 260, 290, 320, 350, 65, 245];
@@ -478,8 +503,9 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   const EXAMPLES = {
     grease: "A little grease always keeps the wheels a-spinnin'\nLike sitting on twenty threes to get the squealers grinnin'",
     steel: "Cold steel, gold wheels, roll deals in the low field\nOld feels, slow heals, I don't kneel and I won't yield\nPressure making diamonds, I was raised inside the silence\nEvery lesson was a violence, now I'm finished with the sirens",
-    // Each line's label takes part in a rhyme of exactly its own type, and nothing else on the line rhymes.
-    schemes: "Perfect: a direct effect\nNear: I grew a beard\nAssonance: a pal in a cab\nMulti: the night is sultry"
+    // Each line explains its type, and its label rhymes in exactly that type. Every other
+    // stressed vowel is used once in the whole example, so no line links to another.
+    schemes: "Perfect: the tail is correct\nNear: the coda grew a beard\nAssonance: vowels, not consonants: a pal in a cab\nMulti: words that line up, sultry"
   };
   const TIER_NOTES = [
     'Same vowel and same consonants after it (spin / grin).',
@@ -589,7 +615,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
       const sch = L.scheme
         ? (L.scheme === 'x'
           ? `<span class="sch" title="Line ending does not rhyme">x</span>`
-          : `<span class="sch g" style="${colourVars(L.schemeColor)}" title="End-rhyme ${L.scheme}">${L.scheme}</span>`)
+          : `<span class="sch g" style="${colourVars(L.schemeColor)}" data-scheme-g="${L.syls[L.syls.length - 1].group}" title="End rhyme ${L.scheme}: click to step through the lines in this group">${L.scheme}</span>`)
         : '';
       html += `<li class="ln"><span class="gut"><span class="num">${num}</span>${sch}</span><span class="txt">${out}</span></li>`;
     }
@@ -621,9 +647,11 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     $('rGroupsSub').textContent = st.guessed ? `${st.guessed} word${st.guessed === 1 ? '' : 's'} guessed from spelling` : 'every word found in the dictionary';
     if (st.longest) {
       $('rMulti').textContent = st.longest.len + ' syllables';
+      $('rLongest').disabled = false;
       $('rMultiSub').textContent = `“${st.longest.a}” ↔ “${st.longest.b}”`;
     } else {
       $('rMulti').textContent = 'None';
+      $('rLongest').disabled = true;
       $('rMultiSub').textContent = 'No run of two or more rhyming syllables found.';
     }
     $('rDensity').textContent = st.density.toFixed(2);
@@ -745,17 +773,55 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     applyFocus();
   }
 
+  // ------------------------------------------------------------ jumping to things out of view
+  const smooth = () => matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  const sylEl = id => lyric.querySelector(`[data-sid="${id}"]`);
+  function inView(el) { const r = el.getBoundingClientRect(); return r.top >= 12 && r.bottom <= window.innerHeight - 12; }
+  function reveal(els) {
+    els = els.filter(Boolean);
+    if (!els.length) return;
+    if (!inView(els[0])) els[0].scrollIntoView({ block: 'center', behavior: smooth() });
+    els.forEach(e => { e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash'); });
+  }
+  // Occurrences to step through: a group's lines, or a multi's spans, in verse order.
+  function occurrences(kind, id) {
+    const A = state.A;
+    if (kind === 'group') {
+      const g = A.groups[id]; if (!g) return [];
+      const byLine = new Map();
+      g.members.forEach(m => { if (!byLine.has(m.line)) byLine.set(m.line, []); byLine.get(m.line).push(m.id); });
+      return [...byLine.values()];
+    }
+    const m = A.multis.find(x => x.id === id); if (!m) return [];
+    return m.spans.slice().sort((a, b) => a.first - b.first).map(sp => sp.syls.map(x => x.id));
+  }
+  function jump(kind, id, startAt) {
+    const same = state.pinned && state.pinned.kind === kind && state.pinned.id === id;
+    const occ = occurrences(kind, id);
+    if (!occ.length) return;
+    let idx;
+    if (startAt != null) idx = Math.max(0, occ.findIndex(o => o.includes(startAt)));
+    else idx = same ? ((state.pinned.step || 0) + 1) % occ.length : 0;
+    state.pinned = { kind, id, step: idx };
+    hoverSid = null; hidePop(); applyFocus();
+    reveal(occ[idx].map(sylEl));
+  }
   $('groupList').addEventListener('click', e => {
-    const b = e.target.closest('[data-pin-group]'); if (!b) return;
-    const id = +b.dataset.pinGroup;
-    state.pinned = state.pinned && state.pinned.kind === 'group' && state.pinned.id === id ? null : { kind: 'group', id };
-    hoverSid = null; applyFocus(); if (!state.pinned) clearPin();
+    const b = e.target.closest('[data-pin-group]'); if (b) jump('group', +b.dataset.pinGroup);
   });
   $('multiList').addEventListener('click', e => {
-    const b = e.target.closest('[data-pin-multi]'); if (!b) return;
-    const id = +b.dataset.pinMulti;
-    state.pinned = state.pinned && state.pinned.kind === 'multi' && state.pinned.id === id ? null : { kind: 'multi', id };
-    hoverSid = null; applyFocus(); if (!state.pinned) clearPin();
+    const b = e.target.closest('[data-pin-multi]'); if (b) jump('multi', +b.dataset.pinMulti);
+  });
+  $('rLongest').addEventListener('click', () => {
+    const A = state.A; if (!A || !A.stats.longest) return;
+    const target = A.stats.longest.aId;
+    const m = A.multis.find(x => x.spans.some(sp => target >= sp.first && target <= sp.last));
+    if (m) jump('multi', m.id, target);
+  });
+  lyric.addEventListener('click', e => {
+    const c = e.target.closest('.sch.g'); if (!c || c.dataset.schemeG === 'undefined') return;
+    e.stopPropagation();
+    jump('group', +c.dataset.schemeG);
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { hidePop(); clearPin(); } });
 
@@ -769,19 +835,34 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     const g = s.group != null ? A.groups[s.group] : null;
     const partner = s.partner != null ? A.syllables[s.partner] : null;
     const pText = partner ? A.lines[partner.lineIndex].raw.slice(partner.cs, partner.ce) : '';
-    const inMulti = A.multis.filter(m => m.spans.some(sp => s.id >= sp.first && s.id <= sp.last));
+    const inMulti = A.multis.filter(m => m.spans.some(sp => s.id >= sp.first && sp.last >= s.id));
     const syllText = A.lines[s.lineIndex].raw.slice(s.cs, s.ce);
-    const facts = [];
-    facts.push(`<span><b>syllable</b><span class="m">/${esc(s.ipa)}/</span> ${s.nSyl > 1 ? `“${esc(syllText)}”, ${s.wi + 1} of ${s.nSyl}, ` : ''}${s.stress === 1 ? 'stressed' : s.stress === 2 ? 'secondary stress' : 'unstressed'}</span>`);
-    facts.push(`<span><b>rhyme part</b><span class="m">/${esc(s.rhyme)}/</span></span>`);
-    if (g && partner) facts.push(`<span><b>match</b>${TIER_WORDS[s.tier] || 'match'} with “${esc(pText)}”${partner.word !== W && partner.word.syls.length > 1 ? ` (${esc(partner.word.text)})` : ''}</span>`);
-    if (g) facts.push(`<span><b>group</b><span class="m">/${esc(g.key)}/</span>, ${g.members.length} syllables</span>`);
-    if (inMulti.length) facts.push(`<span><b>multi</b>${Math.max(...inMulti.map(m => m.len))}-syllable run</span>`);
-    if (!g && !inMulti.length) facts.push(`<span><b>match</b>${s.eligible ? 'nothing rhymes with it within reach' : 'unstressed or a function word, so not compared on its own'}</span>`);
-    facts.push(`<span><b>source</b>${SRC[W.src] || '–'}${W.as ? `, read as “${esc(W.as)}”` : ''}</span>`);
-    insp.innerHTML = `<div class="w">${esc(W.text)}<span class="ipa">/${esc(W.ipa || '')}/</span></div><div class="facts">${facts.join('')}</div>`;
+    const where = partner ? (partner.line === s.line ? 'same line' : 'line ' + (partner.line + 1)) : '';
+    let rows = '';
+    rows += `<dt>Syllable</dt><dd><span class="m">/${esc(s.ipa)}/</span>${s.nSyl > 1 ? ` “${esc(syllText)}”, ${s.wi + 1} of ${s.nSyl}` : ''} · ${s.stress === 1 ? 'stressed' : s.stress === 2 ? 'secondary stress' : 'unstressed'}</dd>`;
+    rows += `<dt>Rhyme part</dt><dd class="m">/${esc(s.rhyme)}/</dd>`;
+    if (g && partner) rows += `<dt>Rhymes with</dt><dd>“${esc(pText)}”${partner.word !== W && partner.word.syls.length > 1 ? ` in ${esc(partner.word.text)}` : ''} (${where}) <span class="tag">${TIER_WORDS[s.tier] || 'match'}</span></dd>`;
+    if (g) rows += `<dt>Group</dt><dd><span class="m">/${esc(g.key)}/</span> · ${g.members.length} syllables</dd>`;
+    if (inMulti.length) rows += `<dt>Multi</dt><dd>part of a ${Math.max(...inMulti.map(m => m.len))}-syllable rhyme</dd>`;
+    if (!g && !inMulti.length) rows += `<dt>Rhymes with</dt><dd>${s.eligible ? 'nothing within reach' : 'not compared alone (unstressed or a function word)'}</dd>`;
+    rows += `<dt>Source</dt><dd>${SRC[W.src] || '–'}${W.as ? `, read as “${esc(W.as)}”` : ''}</dd>`;
+    pop.className = 'pop' + (g ? ' g' : '');
+    pop.setAttribute('style', g ? colourVars(g.color) : '');
+    pop.innerHTML = `<div class="hd"><span class="w">${esc(W.text)}</span><span class="ipa">/${esc(W.ipa || '')}/</span></div><dl>${rows}</dl>`;
+    pop.hidden = false;
+    // Place the card above the hovered line (or below when there is no room), never over it.
+    const r = el.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
+    const cx = r.left + r.width / 2;
+    const left = Math.min(Math.max(12, cx - pw / 2), window.innerWidth - pw - 12);
+    let top = r.top - ph - 14, above = true;
+    if (top < 12) { top = r.bottom + 14; above = false; }
+    pop.classList.add(above ? 'above' : 'below');
+    pop.style.left = left + 'px';
+    pop.style.top = top + 'px';
+    pop.style.setProperty('--ax', Math.min(Math.max(16, cx - left), pw - 16) + 'px');
+    pop.style.setProperty('--dy', above ? '4px' : '-4px');
   }
-  function hidePop() { insp.innerHTML = IDLE; }
+  function hidePop() { pop.hidden = true; }
 
   lyric.addEventListener('mouseover', e => {
     const el = e.target.closest('.syl'); if (!el || !state.A) return;
@@ -792,12 +873,13 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     const el = e.target.closest('.syl.g');
     if (!el || !state.A) return;
     const gid = +el.dataset.g;
-    state.pinned = state.pinned && state.pinned.kind === 'group' && state.pinned.id === gid ? null : { kind: 'group', id: gid };
+    state.pinned = state.pinned && state.pinned.kind === 'group' && state.pinned.id === gid ? null : { kind: 'group', id: gid, step: 0 };
     if (matchMedia('(hover: none)').matches) { hoverSid = null; }
     showPop(el);
     applyFocus();
   });
-  stage.addEventListener('click', e => { if (!e.target.closest('.syl.g')) { hidePop(); clearPin(); } });
+  stage.addEventListener('click', e => { if (!e.target.closest('.syl.g') && !e.target.closest('.sch.g')) { hidePop(); clearPin(); } });
+  window.addEventListener('scroll', () => { if (!pop.hidden) { hoverSid = null; hidePop(); applyFocus(); } }, { passive: true });
 
   let raf = 0;
   const relayout = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { drawLanes(); applyFocus(); }); };

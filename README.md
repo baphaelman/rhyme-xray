@@ -24,15 +24,17 @@ every word is guessed from its spelling instead and results get rougher.
   The page fetches them in your browser; nothing is stored in this repo.
 - **Edit text** to paste your own verse, then **X-ray it** (or press Ctrl/⌘+Enter).
   Lines such as `[Chorus]` become section headings and are not analysed.
-- Hover or tap a coloured syllable. The strip under the verse shows the word and syllable
-  in IPA, its rhyme part, what it matched and how, and where the pronunciation came from.
-- Click a syllable, a rhyme group or a multisyllabic rhyme in the side lists to isolate it.
-  Press Esc to clear.
+- Hover or tap a syllable. A card shows the word and syllable in IPA, its rhyme part, what
+  it rhymes with (and on which line), the match type, and where the pronunciation came from.
+- Click a rhyme group, a multisyllabic rhyme, an end-rhyme letter in the margin or the
+  longest-rhyme reading to isolate it and scroll to it. Click again to step to the next
+  occurrence. Press Esc to clear.
 - **What counts as a rhyme** sets the loosest match allowed: Perfect, Near or Assonance.
 - **A word rhymes with itself** decides whether repeating a word counts as a rhyme.
 - **Reach** sets how many lines apart two syllables may be and still count as rhyming.
-- **Examples → Rhyme types, one per line** shows one line per type. The type word itself
-  takes part in a rhyme of that type ("Near … beard", "Multi … sultry").
+- **Examples → Rhyme types, one per line** gives one line per type. Each line explains its
+  type, and the type word rhymes in exactly that type ("Near: the coda grew a beard").
+  Every other stressed vowel appears only once, so no rhyme crosses lines.
 
 Reading the colours:
 
