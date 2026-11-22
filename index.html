@@ -7,301 +7,382 @@
 <meta name="description" content="Paste a verse and see every rhyme at the syllable level: multisyllabic, internal and slant rhymes, coloured by sound.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap">
 <style>
-/* Layout: light-box. The verse sits on a lit sheet on the left; instruments (controls,
-   readings, group index) run down a narrow rail on the right, stacking under the sheet on phones. */
+/* Layout: studio console. Dark by default. The song header and matching settings sit above
+   the verse; the verse is a stack of section cards; a section list runs down the left and the
+   syllable details, rhyme groups and multis down a rail on the right. Columns stack on phones. */
 :root {
-  --ground: #eef1f4;      /* page */
-  --sheet: #fbfcfd;       /* the lit sheet the verse sits on */
-  --ink: #161a21;
-  --ink-2: #4f5866;
-  --ink-3: #7d8796;
-  --rule: #d9dee5;
-  --accent: #2f62d8;
-  --accent-ink: #ffffff;
-  --on-fill: #12151b;
-  /* rhyme colour recipe (OKLCH), per theme */
-  --fill-l: 0.86; --fill-c: 0.105;
-  --soft-a: 34%;
-  --bar-l: 0.63; --bar-c: 0.16;
-  --shadow: 0 1px 2px rgb(20 30 50 / .06), 0 8px 24px -12px rgb(20 30 50 / .18);
-
-  --f-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-head: "IBM Plex Sans Condensed", "IBM Plex Sans", system-ui, sans-serif;
-  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --ground: #0b0e13; --sheet: #121721; --ink: #e8ecf2; --ink-2: #aab3c2; --ink-3: #7b8597;
-    --rule: #232b38; --accent: #7fa3ff; --accent-ink: #0b0e13; --on-fill: #f5f7fb;
-    --fill-l: 0.47; --fill-c: 0.12; --soft-a: 42%; --bar-l: 0.76; --bar-c: 0.14;
-    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 10px 30px -14px rgb(0 0 0 / .7);
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --ground: #0b0e13; --sheet: #121721; --ink: #e8ecf2; --ink-2: #aab3c2; --ink-3: #7b8597;
-  --rule: #232b38; --accent: #7fa3ff; --accent-ink: #0b0e13; --on-fill: #f5f7fb;
+  --ground: #0d0e11;      /* page */
+  --sheet: #15171c;       /* cards */
+  --sheet-2: #1a1d23;     /* menus, raised */
+  --ink: #ecedef;
+  --ink-2: #a3a9b3;
+  --ink-3: #8a909b;
+  --rule: #23262d;
+  --rule-2: #2e323a;
+  --accent: #8fb0ff;
+  --accent-ink: #0d0e11;
+  --on-fill: #f5f7fb;
+  /* rhyme colour recipes (OKLCH), per theme: text tint, ink chips, multisyllabic colours */
+  --tint-l: 0.82; --tint-c: 0.11;
+  --chip-l: 0.42; --chip-c: 0.085; --on-chip: #f5f7fb;
+  --run-l: 0.78; --run-c: 0.13; --band-a: 0.17;
+  /* used by the "How it works" demos */
   --fill-l: 0.47; --fill-c: 0.12; --soft-a: 42%; --bar-l: 0.76; --bar-c: 0.14;
-  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 10px 30px -14px rgb(0 0 0 / .7);
+  --shadow: 0 18px 40px -12px rgb(0 0 0 / .55);
+
+  --f-ui: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-head: "Geist", system-ui, sans-serif;
+  --f-mono: "Geist Mono", "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --ground: #f6f7f9; --sheet: #ffffff; --sheet-2: #ffffff; --ink: #15171c; --ink-2: #4f5663; --ink-3: #697080;
+  --rule: #e2e5ea; --rule-2: #d3d7de; --accent: #2f62d8; --accent-ink: #ffffff; --on-fill: #12151b;
+  --tint-l: 0.5; --tint-c: 0.15;
+  --chip-l: 0.87; --chip-c: 0.09; --on-chip: #12151b;
+  --run-l: 0.62; --run-c: 0.15; --band-a: 0.16;
+  --fill-l: 0.86; --fill-c: 0.105; --soft-a: 34%; --bar-l: 0.63; --bar-c: 0.16;
+  --shadow: 0 18px 40px -12px rgb(20 30 50 / .25);
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; background: var(--ground); color: var(--ink);
-  font: 15px/1.5 var(--f-ui);
+  font: 14.5px/1.5 var(--f-ui);
 }
 .page {
-  max-width: 1240px; margin: 0 auto;
-  padding-block: 28px 56px;
+  max-width: 1440px; margin: 0 auto;
+  padding-block: 0 56px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-button, input, textarea { font: inherit; color: inherit; }
+button, input, textarea, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+a { color: var(--accent); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.mono { font-family: var(--f-mono); }
 
-/* ---------- header ---------- */
-.top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
-.brand h1 {
-  margin: 0; font: 600 30px/1 var(--f-head); letter-spacing: -0.01em; text-wrap: balance;
-  display: flex; align-items: center; gap: 10px;
+/* ---------- top bar ---------- */
+.top {
+  display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap;
+  padding: 14px 0; border-bottom: 1px solid var(--rule);
 }
-.brand h1 svg { flex: none; }
-.brand p { margin: 8px 0 0; color: var(--ink-2); max-width: 60ch; }
-.brand { flex: 1 1 0; min-width: 0; }
-.top-actions { display: flex; gap: 8px; align-items: center; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
+.brand h1 { margin: 0; font: 600 15px/1 var(--f-mono); letter-spacing: -0.01em; }
+.brand svg { flex: none; }
+.top-actions { display: flex; gap: 8px; align-items: center; margin-left: auto; }
 .icon-btn {
-  width: 38px; height: 38px; display: inline-grid; place-items: center; border-radius: 10px;
-  border: 1px solid var(--rule); background: var(--sheet); color: var(--ink-2); cursor: pointer;
+  width: 44px; height: 40px; display: inline-grid; place-items: center; border-radius: 9px;
+  border: 1px solid var(--rule-2); background: var(--sheet); color: var(--ink); cursor: pointer;
 }
-.icon-btn:hover { color: var(--ink); border-color: var(--ink-3); }
-.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn:hover { background: var(--sheet-2); }
+.icon-btn svg { width: 16px; height: 16px; }
 .theme-dark { display: none; }
-:root[data-theme="dark"] .theme-light { display: none; }
-:root[data-theme="dark"] .theme-dark { display: block; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .theme-light { display: none; }
-  :root:not([data-theme="light"]) .theme-dark { display: block; }
+:root[data-theme="light"] .theme-light { display: none; }
+:root[data-theme="light"] .theme-dark { display: block; }
+.ghost {
+  height: 40px; padding: 0 14px; border-radius: 9px; border: 1px solid var(--rule-2);
+  background: var(--sheet); color: var(--ink); cursor: pointer; white-space: nowrap;
 }
+.ghost:hover, .text-btn:hover { background: var(--sheet-2); }
+.text-btn { height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--rule-2); background: var(--sheet); color: var(--ink); cursor: pointer; font-size: 13px; }
+select.ghost { appearance: none; padding-right: 30px; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: calc(100% - 15px) 55%, calc(100% - 11px) 55%; background-size: 4px 4px; background-repeat: no-repeat; }
+.primary { background: var(--ink); color: var(--ground); border: 0; border-radius: 8px; padding: 6px 14px; font-weight: 600; cursor: pointer; }
 
-/* ---------- main grid ---------- */
-.grid { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 20px; align-items: start; }
-@media (max-width: 960px) { .grid { grid-template-columns: minmax(0, 1fr); } }
-.grid { grid-template-columns: minmax(0, 1fr) 300px; }
-@media (max-width: 960px) { .grid { grid-template-columns: minmax(0, 1fr); } }
-
-.sheet-card { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; box-shadow: var(--shadow); min-width: 0; }
-.sheet-bar {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  padding: 10px 12px 10px 16px; border-bottom: 1px solid var(--rule);
+/* ---------- finder ---------- */
+.finder { position: relative; flex: 1 1 340px; max-width: 640px; margin: 0; }
+.finder-box {
+  display: flex; align-items: center; gap: 10px; height: 42px; padding: 0 4px 0 12px;
+  background: var(--sheet); border: 1px solid var(--rule-2); border-radius: 10px;
 }
-.seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 10px; background: var(--ground); border: 1px solid var(--rule); }
+.finder-box:focus-within { border-color: var(--ink-3); }
+.finder-box svg { width: 16px; height: 16px; color: var(--ink-3); flex: none; }
+.finder-box input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 8px 0; font-size: 15px; outline: none; }
+.finder-box input::-webkit-search-cancel-button { cursor: pointer; }
+.finder-box .primary { height: 34px; padding: 0 14px; flex: none; font-size: 13.5px; }
+.intro { margin: 10px 0 0; font-size: 13px; color: var(--ink-3); }
+.intro a { color: var(--ink-2); }
+.intro.err { color: var(--ink); }
+.results {
+  position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 6px); margin: 0; padding: 6px; list-style: none;
+  background: var(--sheet-2); border: 1px solid var(--rule-2); border-radius: 12px;
+  box-shadow: var(--shadow); max-height: min(420px, 60vh); overflow-y: auto;
+}
+.results[hidden] { display: none; }
+.results li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; padding: 9px 10px; border-radius: 8px; cursor: pointer; }
+.results li[aria-selected="true"], .results li:hover { background: var(--rule); }
+.results .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.results .a { color: var(--ink-2); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; grid-column: 1; }
+.results .d { font: 12px var(--f-mono); color: var(--ink-3); grid-row: 1 / span 2; grid-column: 2; align-self: center; }
+.results .msg { display: block; color: var(--ink-2); cursor: default; }
+.results .msg:hover { background: none; }
+
+/* ---------- song header + settings ---------- */
+.songhead { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 48px; padding: 22px 0 18px; }
+.songhead .title { flex: 1 1 280px; min-width: 0; }
+.songhead h2 { margin: 0; font: 600 26px/1.15 var(--f-head); letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.songhead .meta { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+.readings { margin: 0; display: flex; flex-wrap: wrap; gap: 14px 48px; }
+.readings dt { font-size: 12px; color: var(--ink-2); }
+.readings dd { margin: 4px 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.readings b { font: 600 22px/1.1 var(--f-mono); font-variant-numeric: tabular-nums; }
+.readings small { font-size: 12px; color: var(--ink-3); }
+.reading-multi { max-width: 520px; }
+.linkish { border: 0; background: none; padding: 0; color: var(--accent); font-size: 13px; cursor: pointer; text-align: left; }
+.linkish:hover { text-decoration: underline; }
+.linkish:disabled { color: var(--ink-3); cursor: default; text-decoration: none; }
+
+.toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 32px; padding: 10px 0;
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin-bottom: 18px;
+  font-size: 13px; color: var(--ink-2);
+}
+.tool { display: flex; align-items: center; gap: 10px; }
+.tool.tier { flex-wrap: wrap; }
+.tool-note { margin: 0; font-size: 12px; color: var(--ink-3); max-width: 34ch; }
+.tool.reach input { width: 140px; }
+.tool.reach output { font: 500 12.5px var(--f-mono); color: var(--ink); min-width: 7ch; }
+.seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 9px; background: var(--sheet); border: 1px solid var(--rule); }
 .seg button {
-  border: 0; background: transparent; padding: 5px 12px; border-radius: 7px; cursor: pointer;
-  color: var(--ink-2); font-weight: 500; font-size: 14px; white-space: nowrap;
+  border: 0; background: transparent; height: 32px; padding: 0 12px; border-radius: 6px; cursor: pointer;
+  color: var(--ink-2); font-size: 13px; white-space: nowrap;
 }
 .seg button:hover { color: var(--ink); }
-.seg button[aria-pressed="true"] { background: var(--sheet); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / .12); }
-.bar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-@media (max-width: 600px) { .bar-right { flex: 1 1 100%; flex-wrap: nowrap; } .bar-right select { flex: 1; min-width: 0; } }
-.text-btn {
-  border: 1px solid var(--rule); background: transparent; border-radius: 8px; padding: 5px 10px;
-  color: var(--ink-2); cursor: pointer; font-size: 13.5px;
-}
-.text-btn:hover { color: var(--ink); border-color: var(--ink-3); }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-select.text-btn { appearance: none; padding-right: 26px; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: calc(100% - 13px) 55%, calc(100% - 9px) 55%; background-size: 4px 4px; background-repeat: no-repeat; }
+.seg button[aria-pressed="true"] { background: var(--rule-2); color: var(--ink); }
+:root[data-theme="light"] .seg button[aria-pressed="true"] { background: var(--ground); box-shadow: 0 1px 2px rgb(0 0 0 / .12); }
+.switch { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.switch input { position: absolute; opacity: 0; pointer-events: none; }
+.switch .track { width: 34px; height: 20px; border-radius: 10px; background: var(--rule-2); position: relative; transition: background .15s; flex: none; }
+.switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--on-fill); box-shadow: 0 1px 2px rgb(0 0 0 / .3); transition: transform .15s; }
+:root[data-theme="light"] .switch .track::after { background: #fff; }
+.switch input:checked + .track { background: var(--ink-2); }
+.switch input:checked + .track::after { transform: translateX(14px); }
+.switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+input[type="range"] { accent-color: var(--ink-2); }
 
-.legend {
-  display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 10px 16px; border-bottom: 1px solid var(--rule);
-  font-size: 12.5px; color: var(--ink-2);
+/* ---------- three columns ---------- */
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+.grid.has-nav { grid-template-columns: 210px minmax(0, 1fr) 320px; }
+.secnav[hidden] { display: none; }
+@media (max-width: 1180px) {
+  .grid.has-nav { grid-template-columns: minmax(0, 1fr) 300px; }
+  .grid { grid-template-columns: minmax(0, 1fr) 300px; }
 }
-.legend span { display: inline-flex; align-items: center; gap: 6px; }
-.legend .k { font-family: var(--f-mono); font-size: 12.5px; padding: 0 3px; border-radius: 3px; color: var(--on-fill); }
-.legend .k.solid { background: oklch(var(--fill-l) var(--fill-c) 230); }
-.legend .k.soft { background: color-mix(in oklch, oklch(var(--fill-l) var(--fill-c) 230) var(--soft-a), transparent); color: var(--ink); }
-.legend .k.multi { color: var(--ink); background: none; box-shadow: inset 0 -3px 0 oklch(var(--bar-l) var(--bar-c) 50); border-radius: 0; }
-.legend .tip { margin-left: auto; color: var(--ink-3); }
-.legend .k.guess { color: var(--ink); background: none; text-decoration: underline dotted var(--ink-3); text-underline-offset: 3px; }
+@media (max-width: 960px) {
+  .grid, .grid.has-nav { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* section list: a column on wide screens, a row of chips otherwise */
+.secnav { position: sticky; top: 16px; display: grid; gap: 12px; min-width: 0; }
+.secnav .box { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 12px 8px; }
+.secnav h2, .panel h2 { margin: 2px 10px 10px; font: 500 11px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.secnav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: calc(100vh - 140px); overflow-y: auto; }
+.secnav button {
+  width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 8px; text-align: left;
+  padding: 9px 10px; border-radius: 9px; border: 1px solid transparent; background: transparent; color: var(--ink-2);
+  font-size: 13px; cursor: pointer;
+}
+.secnav button:hover { color: var(--ink); background: var(--rule); }
+.secnav button[aria-current="true"] { background: var(--sheet-2); border-color: var(--rule-2); color: var(--ink); }
+.secnav .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.secnav .rng { font: 11.5px var(--f-mono); color: var(--ink-3); }
+.secnav .dens { grid-column: 1 / 3; height: 4px; border-radius: 2px; background: var(--rule); overflow: hidden; }
+.secnav .dens i { display: block; height: 100%; border-radius: 2px; background: var(--ink-3); }
+.secnav .note { margin: 0 10px; font-size: 12px; color: var(--ink-3); }
+@media (max-width: 1180px) {
+  .secnav { position: static; grid-column: 1 / -1; }
+  .secnav .box { padding: 6px; }
+  .secnav h2, .secnav .note, .secnav .dens, .secnav .rng { display: none; }
+  .secnav ul { display: flex; gap: 6px; overflow-x: auto; max-height: none; }
+  .secnav li { flex: none; }
+  .secnav button { display: block; padding: 7px 12px; border-radius: 999px; }
+}
 
 /* ---------- the verse ---------- */
-.stage { position: relative; padding: 18px 16px 26px 8px; min-height: 220px; }
-#lanes { position: absolute; inset: 0; pointer-events: none; }
-.lyric { list-style: none; margin: 0; padding: 0; position: relative; font: 18px/1 var(--f-mono); }
-.ln { display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: baseline; }
-.ln.blank { height: 22px; }
-.gut { display: flex; justify-content: flex-end; align-items: baseline; gap: 6px; padding-right: 12px; font: 500 11.5px/1 var(--f-mono); color: var(--ink-3); user-select: none; }
-.sch {
-  min-width: 18px; height: 18px; display: inline-grid; place-items: center; border-radius: 5px; font-size: 11px;
-  color: var(--ink-3); border: 1px dashed var(--rule);
+.verse { min-width: 0; }
+.tabs { position: relative; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); margin-bottom: 14px; }
+.tablist { display: flex; gap: 2px; }
+.tab {
+  height: 42px; padding: 0 14px; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  background: transparent; color: var(--ink-2); font-size: 13.5px; cursor: pointer;
 }
-.sch.g { border: 0; color: var(--on-fill); background: oklch(var(--fill-l) var(--fill-c) var(--h)); }
-.txt { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 2.75; min-width: 0; }
-.syl:focus { outline: none; }
-.syl:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.syl { border-radius: 3px; transition: opacity .15s ease, box-shadow .15s ease; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
-.syl.g { background: oklch(calc(var(--fill-l) + var(--dl, 0)) var(--fill-c) var(--h)); color: var(--on-fill); padding: 3px 0; cursor: pointer; }
-.syl.g.soft { background: color-mix(in oklch, oklch(calc(var(--fill-l) + var(--dl, 0)) var(--fill-c) var(--h)) var(--soft-a), transparent); color: var(--ink); }
-.w.guess { text-decoration: underline dotted var(--ink-3); text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
-.bar { position: absolute; height: 3px; border-radius: 2px; background: oklch(var(--bar-l) var(--bar-c) var(--h)); transition: opacity .15s ease; }
-
-/* focus: one group or one multi lit, the rest dimmed */
-.lyric.focus .syl.g:not(.on) { background: color-mix(in oklch, oklch(calc(var(--fill-l) + var(--dl, 0)) var(--fill-c) var(--h)) 14%, transparent); color: var(--ink-3); }
-.lyric.focus .syl.on { box-shadow: 0 0 0 2px oklch(var(--bar-l) var(--bar-c) var(--h)); }
-.lyric.focus .syl:not(.g).on { box-shadow: none; }
-#lanes.focus .bar:not(.on) { opacity: .15; }
-#lanes .bar.on { height: 4px; }
-.lyric.loading .txt { color: var(--ink-2); }
-
-.editor { display: none; padding: 16px; }
-.sheet-card.editing .editor { display: block; }
-.sheet-card.editing .stage, .sheet-card.editing .legend { display: none; }
-.editor textarea {
-  width: 100%; min-height: 300px; resize: vertical; padding: 12px 14px; border-radius: 10px;
-  border: 1px solid var(--rule); background: var(--ground); color: var(--ink);
-  font: 16px/1.9 var(--f-mono);
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+.tab-right { margin-left: auto; display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+.tab-right .ghost { height: 34px; font-size: 13px; }
+.disp-sum { font: 11.5px var(--f-mono); color: var(--ink-3); }
+.disp-btn { display: inline-flex; align-items: center; gap: 8px; }
+.disp-btn svg { width: 15px; height: 15px; }
+.menu {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 35; width: 300px;
+  background: var(--sheet-2); border: 1px solid var(--rule-2); border-radius: 12px; box-shadow: var(--shadow);
+  padding: 14px; display: grid; gap: 14px;
 }
-.editor textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
-.editor .hint { margin: 10px 2px 0; font-size: 13px; color: var(--ink-3); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-kbd { font: 12px var(--f-mono); padding: 1px 5px; border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 4px; }
-.primary { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 6px 14px; font-weight: 600; cursor: pointer; }
+.menu[hidden] { display: none; }
+.menu .lbl { display: block; font: 500 11px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; }
+.menu .seg { display: flex; background: var(--ground); border: 0; }
+.menu .seg button { flex: 1; padding: 0 6px; font-size: 12.5px; }
+.menu .key { border-top: 1px solid var(--rule-2); padding-top: 12px; display: grid; gap: 4px; font-size: 12.5px; color: var(--ink-2); }
+.menu .key span { line-height: 2; }
+.menu .key .mono { font-size: 13px; }
 
-.status { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--rule); font-size: 13.5px; color: var(--ink-2); }
+.status { display: flex; align-items: center; gap: 10px; padding: 10px 2px 14px; font-size: 13px; color: var(--ink-2); }
 .status[hidden] { display: none; }
-.status .track { flex: 0 0 120px; height: 4px; border-radius: 2px; background: var(--rule); overflow: hidden; }
-.status .track i { display: block; height: 100%; width: 40%; background: var(--accent); border-radius: 2px; animation: scan 1.1s ease-in-out infinite alternate; }
+.status .track { flex: 0 0 120px; height: 4px; border-radius: 2px; background: var(--rule-2); overflow: hidden; }
+.status .track i { display: block; height: 100%; width: 40%; background: var(--ink-2); border-radius: 2px; animation: scan 1.1s ease-in-out infinite alternate; }
 @keyframes scan { from { transform: translateX(-30%); } to { transform: translateX(180%); } }
 .status.err { color: var(--ink); }
 .status.err .track { display: none; }
 
-/* ---------- finder ---------- */
-.finder { position: relative; margin-bottom: 14px; }
-.finder-box {
-  display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px;
-  background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; box-shadow: var(--shadow);
-}
-.finder-box:focus-within { border-color: var(--accent); }
-.finder-box svg { width: 18px; height: 18px; color: var(--ink-3); flex: none; }
-.finder-box input {
-  flex: 1; min-width: 0; border: 0; background: transparent; padding: 8px 0; font-size: 16px; outline: none;
-}
-.finder-box input::-webkit-search-cancel-button { cursor: pointer; }
-.finder-box .primary { padding: 9px 16px; border-radius: 10px; flex: none; }
-.finder-note { margin: 8px 4px 0; font-size: 13px; color: var(--ink-3); }
-.finder-note a { color: var(--ink-2); }
-.finder-note.err { color: var(--ink); }
-.results {
-  position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% - 26px); margin: 0; padding: 6px; list-style: none;
-  background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px;
-  box-shadow: 0 18px 40px -12px rgb(0 0 0 / .35); max-height: min(420px, 60vh); overflow-y: auto;
-}
-.results[hidden] { display: none; }
-.results li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; padding: 9px 10px; border-radius: 9px; cursor: pointer; }
-.results li[aria-selected="true"], .results li:hover { background: var(--ground); }
-.results .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.results .a { color: var(--ink-2); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; grid-column: 1; }
-.results .d { font: 12.5px var(--f-mono); color: var(--ink-3); grid-row: 1 / span 2; grid-column: 2; align-self: center; }
-.results .msg { display: block; color: var(--ink-2); cursor: default; }
-.results .msg:hover { background: none; }
+/* The stage is its own stacking context: section cards paint their background below the
+   multisyllabic bands (#lanes), and the text paints above both. */
+.stage { position: relative; z-index: 0; }
+#lanes { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.lyric { position: relative; display: grid; gap: 14px; }
+.sec { position: relative; }
+.sec::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 11px 18px; border-bottom: 1px solid var(--rule); }
+.sec.folded .sec-head { border-bottom: 0; }
+.sec-head h3 { margin: 0; font: 600 12px/1.4 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; }
+.sec-head .meta { font-size: 12px; color: var(--ink-2); }
+.scheme { margin-left: auto; display: flex; flex-wrap: wrap; gap: 2px; }
+.unfold { display: flex; align-items: center; gap: 10px; width: 100%; padding: 0 18px 14px; border: 0; background: none; color: var(--ink-2); font-size: 13px; text-align: left; cursor: pointer; }
+.unfold b { color: var(--accent); font-weight: 400; }
+.unfold svg { width: 14px; height: 14px; flex: none; }
+.lines { list-style: none; margin: 0; padding: 16px 18px 20px 8px; font: 19px/1 var(--f-mono); }
+:root[data-density="compact"] .lines { font-size: 15px; padding-block: 12px 16px; }
+.ln { display: grid; grid-template-columns: 62px minmax(0, 1fr); align-items: baseline; }
+.gut { display: flex; justify-content: flex-end; align-items: baseline; gap: 6px; padding-right: 12px; font: 500 11px/1 var(--f-mono); color: var(--ink-3); user-select: none; }
+.txt { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 2.35; min-width: 0; }
+:root[data-density="compact"] .txt { line-height: 1.95; }
 
-/* ---------- toolbar + readings (above the verse) ---------- */
-.toolbar {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 26px; padding: 12px 16px;
-  background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; margin-bottom: 12px;
+/* rhyme colours: Text tint colours the letters; Ink sets them on dark chips */
+.syl { border-radius: 3px; transition: opacity .15s ease, box-shadow .15s ease; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.syl:focus { outline: none; }
+.syl:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.syl.g { cursor: pointer; color: oklch(calc(var(--tint-l) + var(--dl, 0)) var(--tint-c) var(--h)); }
+.syl.g.soft { color: oklch(calc(var(--tint-l) + var(--dl, 0)) var(--tint-c) var(--h) / .7); }
+:root[data-colours="ink"] .syl.g { color: var(--on-chip); background: oklch(calc(var(--chip-l) + var(--dl, 0)) var(--chip-c) var(--h)); padding: 3px 0; }
+:root[data-colours="ink"] .syl.g.soft { color: var(--ink); background: oklch(calc(var(--chip-l) + var(--dl, 0)) var(--chip-c) var(--h) / .42); }
+.w.guess { text-decoration: underline dotted var(--ink-3); text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.sch {
+  min-width: 16px; height: 18px; padding: 0 2px; display: inline-grid; place-items: center; border-radius: 4px;
+  font: 600 11.5px/1 var(--f-mono); color: var(--ink-3);
 }
-.tool { display: flex; align-items: center; gap: 10px; }
-.tool-label { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
-.tool.reach input { width: 140px; }
-.tool.reach output { font: 500 13px var(--f-mono); color: var(--ink-2); min-width: 7ch; }
-.tool.tier { flex-wrap: wrap; }
-.tool-note { flex: 1 1 22ch; max-width: 32ch; margin: 0; font-size: 12.5px; line-height: 1.35; color: var(--ink-3); }
-.switch { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; font-weight: 500; }
-.switch input { position: absolute; opacity: 0; pointer-events: none; }
-.switch .track { width: 36px; height: 21px; border-radius: 11px; background: var(--rule); position: relative; transition: background .15s; flex: none; }
-.switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 15px; height: 15px; border-radius: 50%; background: var(--sheet); box-shadow: 0 1px 2px rgb(0 0 0 / .3); transition: transform .15s; }
-.switch input:checked + .track { background: var(--accent); }
-.switch input:checked + .track::after { transform: translateX(15px); }
-.switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
-input[type="range"] { accent-color: var(--accent); }
+.sch.g { cursor: pointer; color: oklch(calc(var(--tint-l) + var(--dl, 0)) var(--tint-c) var(--h)); }
+:root[data-colours="ink"] .sch.g { color: var(--on-chip); background: oklch(calc(var(--chip-l) + var(--dl, 0)) var(--chip-c) var(--h)); padding: 0 4px; }
 
-.readings {
-  display: grid; grid-template-columns: 1fr 2.6fr; margin-bottom: 20px;
-  background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px;
-}
-.reading { min-width: 0; padding: 12px 16px; }
-.reading + .reading { border-left: 1px solid var(--rule); }
-.reading b { display: block; font: 600 26px/1.1 var(--f-head); font-variant-numeric: tabular-nums; }
-.reading span { display: block; font-size: 12.5px; color: var(--ink-2); }
-.reading small { display: block; font-size: 12px; color: var(--ink-3); margin-top: 2px; overflow-wrap: anywhere; }
-@media (max-width: 760px) {
-  .readings { grid-template-columns: 1fr 1.7fr; }
-}
+/* multisyllabic rhymes: one colour per set, drawn as a band, an underline or an outline */
+.bar { position: absolute; pointer-events: none; transition: opacity .15s ease; }
+.bar.line { height: 2px; border-radius: 1px; background: oklch(var(--run-l) var(--run-c) var(--rh)); }
+.bar.band { border-radius: 5px; background: oklch(var(--run-l) var(--run-c) var(--rh) / var(--band-a)); }
+.bar.outline { border-radius: 6px; box-shadow: inset 0 0 0 1.5px oklch(var(--run-l) var(--run-c) var(--rh) / .85); }
+.keyrun { border-radius: 4px; }
+:root[data-multis="band"] .keyrun { background: oklch(var(--run-l) var(--run-c) var(--rh) / var(--band-a)); padding: 3px 1px; }
+:root[data-multis="line"] .keyrun { border-bottom: 2px solid oklch(var(--run-l) var(--run-c) var(--rh)); padding-bottom: 4px; border-radius: 0; }
+:root[data-multis="outline"] .keyrun { box-shadow: inset 0 0 0 1.5px oklch(var(--run-l) var(--run-c) var(--rh) / .85); padding: 3px 2px; }
 
-.song { flex: 1; min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.song span { color: var(--ink-2); font-weight: 400; }
-.ln.head { display: block; padding: 14px 0 0 52px; font: 600 11.5px/1.6 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
-@media (max-width: 600px) { .ln.head { padding-left: 34px; } .tool.reach input { width: 110px; } }
+/* focus: one group or one multi lit, the rest dimmed */
+.lyric.focus .syl.g:not(.on) { color: var(--ink-3); }
+:root[data-colours="ink"] .lyric.focus .syl.g:not(.on) { background: oklch(calc(var(--chip-l) + var(--dl, 0)) var(--chip-c) var(--h) / .2); }
+.lyric.focus .syl.on { box-shadow: 0 0 0 1.5px oklch(var(--run-l) var(--run-c) var(--h)); }
+.lyric.focus .syl:not(.g).on { box-shadow: none; }
+#lanes.focus .bar:not(.on) { opacity: .15; }
+#lanes .bar.line.on { height: 3px; }
+.lyric.loading .txt { color: var(--ink-2); }
+.lyric .empty-verse { padding: 18px; color: var(--ink-3); }
+
+.editor { display: none; }
+.verse.editing .editor { display: block; }
+.verse.editing .stage, .verse.editing .status { display: none; }
+.editor textarea {
+  width: 100%; min-height: 420px; resize: vertical; padding: 16px 18px; border-radius: 14px;
+  border: 1px solid var(--rule); background: var(--sheet); color: var(--ink);
+  font: 15px/1.8 var(--f-mono);
+}
+.editor textarea:focus { outline: 2px solid var(--ink-3); outline-offset: -1px; }
+.editor .hint { margin: 10px 2px 0; font-size: 13px; color: var(--ink-3); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+kbd { font: 11.5px var(--f-mono); padding: 1px 5px; border: 1px solid var(--rule-2); border-bottom-width: 2px; border-radius: 4px; }
 
 /* ---------- rail ---------- */
 .rail { display: grid; gap: 14px; min-width: 0; }
 @media (min-width: 961px) {
   .rail { position: sticky; top: 16px; }
-  .rail .panel { display: flex; flex-direction: column; min-height: 0; max-height: calc((100vh - 46px) / 2); }
+  .rail .panel.list-panel { display: flex; flex-direction: column; min-height: 0; max-height: max(180px, calc((100vh - 300px) / 2)); }
   .rail .list { max-height: none; flex: 1; min-height: 0; }
 }
+@media (max-width: 960px) { .inspector { display: none; } }
 .panel { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 14px 16px; min-width: 0; }
-.panel h2 { margin: 0 0 10px; font: 600 12px/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.panel h2 small { font: 500 12px var(--f-ui); letter-spacing: 0; text-transform: none; color: var(--ink-3); }
+.panel h2 { margin: 0 0 10px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.panel h2 small { font: 400 12px var(--f-ui); letter-spacing: 0; text-transform: none; color: var(--ink-3); }
 
-.list { list-style: none; margin: 0; padding: 0; display: grid; align-content: start; gap: 2px; max-height: 320px; overflow-y: auto; margin-inline: -6px; }
+.inspector { position: relative; border-top: 3px solid var(--pc, var(--rule)); }
+.inspector.g { --pc: oklch(var(--run-l) var(--run-c) var(--h)); }
+.inspector .empty { margin: 0; }
+.inspector .hd { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; padding-right: 30px; }
+.inspector .w { font: 600 20px/1.2 var(--f-mono); }
+.inspector .ipa { font: 15px/1.2 var(--f-mono); color: var(--ink-2); }
+.inspector dl { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 7px 10px; margin: 0; font-size: 12.5px; line-height: 1.45; }
+.inspector dt { color: var(--ink-3); }
+.inspector dd { margin: 0; overflow-wrap: anywhere; }
+.inspector .m { font-family: var(--f-mono); }
+.inspector .tag { display: inline-block; padding: 0 7px; border-radius: 999px; font-size: 11.5px; font-weight: 600; background: var(--rule-2); }
+.inspector .x { display: none; position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border: 1px solid var(--rule-2); border-radius: 8px; background: transparent; color: var(--ink-2); cursor: pointer; font-size: 17px; line-height: 1; }
+.inspector.pinned .x { display: block; }
+.inspector .hint { display: none; }
+.rswatch { display: inline-block; width: 12px; height: 4px; border-radius: 2px; vertical-align: middle; margin-right: 6px; background: oklch(var(--run-l) var(--run-c) var(--rh)); }
+
+.list { list-style: none; margin: 0 -6px; padding: 0; display: grid; align-content: start; gap: 2px; max-height: 320px; overflow-y: auto; }
 .list button {
   width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center;
   text-align: left; padding: 6px; border-radius: 8px; border: 0; background: transparent; cursor: pointer;
 }
-.list button:hover, .list button[aria-pressed="true"] { background: var(--ground); }
-.list button[aria-pressed="true"] { box-shadow: inset 0 0 0 1px var(--rule); }
-.chip { font: 500 13px/1 var(--f-mono); padding: 5px 7px; border-radius: 6px; min-width: 46px; text-align: center; color: var(--on-fill); background: oklch(calc(var(--fill-l) + var(--dl, 0)) var(--fill-c) var(--h)); }
-.chip.soft { background: color-mix(in oklch, oklch(calc(var(--fill-l) + var(--dl, 0)) var(--fill-c) var(--h)) var(--soft-a), transparent); color: var(--ink); }
-.list .words { font-size: 13px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list button:hover, .list button[aria-pressed="true"] { background: var(--rule); }
+.list button[aria-pressed="true"] { box-shadow: inset 0 0 0 1px var(--rule-2); }
+.chip { font: 500 12.5px/1 var(--f-mono); padding: 5px 7px; border-radius: 6px; min-width: 46px; text-align: center; color: oklch(calc(var(--tint-l) + var(--dl, 0)) var(--tint-c) var(--h)); background: oklch(calc(var(--tint-l) + var(--dl, 0)) var(--tint-c) var(--h) / .12); }
+.chip.soft { color: oklch(calc(var(--tint-l) + var(--dl, 0)) var(--tint-c) var(--h) / .75); }
+:root[data-colours="ink"] .chip { color: var(--on-chip); background: oklch(calc(var(--chip-l) + var(--dl, 0)) var(--chip-c) var(--h)); }
+:root[data-colours="ink"] .chip.soft { color: var(--ink); background: oklch(calc(var(--chip-l) + var(--dl, 0)) var(--chip-c) var(--h) / .42); }
+.list .words { font-size: 12.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .list .n { font: 500 12px var(--f-mono); color: var(--ink-3); }
 .list .lr { color: var(--ink-3); font-size: 12px; margin-right: 4px; }
-.mchip { width: 28px; height: 6px; border-radius: 3px; background: oklch(var(--bar-l) var(--bar-c) var(--h)); }
-.list .pair { font: 13px/1.35 var(--f-mono); color: var(--ink); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.mchip { width: 22px; height: 6px; border-radius: 3px; background: oklch(var(--run-l) var(--run-c) var(--rh)); }
+.list .pair { font: 12.5px/1.4 var(--f-mono); color: var(--ink); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .empty { font-size: 13px; color: var(--ink-3); margin: 0; }
 
-/* ---------- hover card ---------- */
+/* ---------- hover card (phones and narrow windows) ---------- */
 .pop {
   position: fixed; z-index: 40; width: max-content; max-width: min(360px, calc(100vw - 24px));
-  background: var(--sheet); color: var(--ink); border: 1px solid var(--rule);
-  border-top: 4px solid var(--pc, var(--ink-3)); border-radius: 12px; padding: 12px 16px 13px;
-  box-shadow: 0 22px 48px -14px rgb(0 0 0 / .45), 0 2px 6px rgb(0 0 0 / .08);
+  background: var(--sheet-2); color: var(--ink); border: 1px solid var(--rule-2);
+  border-top: 3px solid var(--pc, var(--ink-3)); border-radius: 12px; padding: 12px 16px 13px;
+  box-shadow: var(--shadow);
   pointer-events: none; font-size: 13px; animation: pop-in .12s ease-out;
 }
-.pop.g { --pc: oklch(var(--bar-l) var(--bar-c) var(--h)); }
+.pop.g { --pc: oklch(var(--run-l) var(--run-c) var(--h)); }
 .pop[hidden] { display: none; }
 @keyframes pop-in { from { opacity: 0; transform: translateY(var(--dy, 4px)); } to { opacity: 1; transform: none; } }
 .pop::after {
   content: ""; position: absolute; left: var(--ax, 50%); width: 12px; height: 12px; margin-left: -6px;
-  background: var(--sheet); border: 1px solid var(--rule); transform: rotate(45deg);
+  background: var(--sheet-2); border: 1px solid var(--rule-2); transform: rotate(45deg);
 }
 .pop.above::after { bottom: -7px; border-top: 0; border-left: 0; }
-.pop.below::after { top: -10px; border-bottom: 0; border-right: 0; background: var(--pc, var(--ink-3)); border-color: var(--pc, var(--ink-3)); }
+.pop.below::after { top: -9px; border-bottom: 0; border-right: 0; background: var(--pc, var(--ink-3)); border-color: var(--pc, var(--ink-3)); }
 .pop .hd { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.pop .w { font: 600 20px/1.2 var(--f-mono); }
-.pop .ipa { font: 18px/1.2 var(--f-mono); color: var(--ink-2); }
+.pop .w { font: 600 19px/1.2 var(--f-mono); }
+.pop .ipa { font: 16px/1.2 var(--f-mono); color: var(--ink-2); }
 .pop dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 14px; margin: 10px 0 0; }
 .pop dt { color: var(--ink-3); }
 .pop dd { margin: 0; }
 .pop .m { font-family: var(--f-mono); }
-.pop .tag { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 12px; font-weight: 600; background: color-mix(in oklch, var(--pc, var(--ink-3)) 22%, transparent); }
+.pop .tag { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--rule-2); }
 @media (prefers-reduced-motion: reduce) { .pop { animation: none; } }
-.pop.frozen { pointer-events: auto; user-select: text; -webkit-user-select: text; cursor: text; box-shadow: 0 26px 56px -14px rgb(0 0 0 / .55), 0 0 0 2px var(--pc, var(--ink-3)); }
+.pop.frozen { pointer-events: auto; user-select: text; -webkit-user-select: text; cursor: text; box-shadow: var(--shadow), 0 0 0 2px var(--pc, var(--ink-3)); }
 .pop .x { display: none; position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border: 0; border-radius: 8px; background: transparent; color: var(--ink-3); cursor: pointer; font-size: 18px; line-height: 1; }
-.pop .x:hover { background: var(--ground); color: var(--ink); }
+.pop .x:hover { background: var(--rule); color: var(--ink); }
 .pop.frozen .x { display: block; }
 .pop .hint { display: none; margin-top: 10px; font-size: 11.5px; color: var(--ink-3); }
 .pop.frozen .hint { display: block; }
@@ -309,15 +390,9 @@ input[type="range"] { accent-color: var(--accent); }
 
 .syl.flash, .sch.flash { animation: flash 1.1s ease-out; }
 @keyframes flash {
-  0%, 30% { box-shadow: 0 0 0 5px oklch(var(--bar-l) var(--bar-c) var(--h, 250) / .6); }
-  100% { box-shadow: 0 0 0 2px oklch(var(--bar-l) var(--bar-c) var(--h, 250) / 0); }
+  0%, 30% { box-shadow: 0 0 0 5px oklch(var(--run-l) var(--run-c) var(--h, 250) / .6); }
+  100% { box-shadow: 0 0 0 2px oklch(var(--run-l) var(--run-c) var(--h, 250) / 0); }
 }
-.reading.jump { cursor: pointer; text-align: left; border: 0; background: none; font: inherit; color: inherit; border-left: 1px solid var(--rule); border-radius: 0; }
-.reading.jump:hover b { color: var(--accent); }
-.reading.jump:not(:disabled) small::after { content: "  Show me →"; color: var(--accent); white-space: nowrap; }
-.reading.jump:disabled { cursor: default; }
-.sch.g { cursor: pointer; }
-
 /* ---------- how it works ---------- */
 .how { margin-top: 32px; display: grid; gap: 10px; }
 .how-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
@@ -399,12 +474,18 @@ input[type="range"] { accent-color: var(--accent); }
 .foot { margin-top: 14px; font-size: 12.5px; color: var(--ink-3); }
 
 @media (max-width: 600px) {
-  .brand h1 { font-size: 26px; }
-  .lyric { font-size: 15.5px; }
-  .ln { grid-template-columns: 34px minmax(0, 1fr); }
+  .songhead { padding-top: 18px; }
+  .songhead h2 { font-size: 22px; }
+  .lines { font-size: 15.5px; padding: 12px 12px 16px 2px; }
+  .txt { line-height: 2.15; }
+  .ln { grid-template-columns: 36px minmax(0, 1fr); }
   .gut .num { display: none; }
   .gut { padding-right: 8px; }
-  .stage { padding: 14px 10px 22px 4px; }
+  .sec-head { padding: 10px 12px; }
+  .scheme { display: none; }
+  .tool.reach input { width: 110px; }
+  .disp-sum { display: none; }
+  .tab { padding: 0 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
@@ -415,40 +496,54 @@ input[type="range"] { accent-color: var(--accent); }
 <body>
 <div class="page">
   <header class="top">
-    <div class="brand">
-      <h1>
-        <svg viewBox="0 0 28 28" width="28" height="28" aria-hidden="true">
-          <rect x="1" y="1" width="26" height="26" rx="7" fill="none" stroke="currentColor" stroke-width="2"/>
-          <rect x="6" y="8" width="7" height="4" rx="1.5" fill="oklch(0.7 0.15 20)"/>
-          <rect x="15" y="8" width="7" height="4" rx="1.5" fill="oklch(0.7 0.15 230)"/>
-          <rect x="6" y="16" width="7" height="4" rx="1.5" fill="oklch(0.7 0.15 20)"/>
-          <rect x="15" y="16" width="7" height="4" rx="1.5" fill="oklch(0.7 0.15 230)"/>
-        </svg>
-        Rhyme X-ray
-      </h1>
-      <p>Search for a song or paste a verse, and see every rhyme syllable by syllable, including the multisyllabic, internal and slant rhymes that end-rhyme checkers miss.</p>
-    </div>
+    <a class="brand" href="./">
+      <svg viewBox="0 0 26 26" width="26" height="26" aria-hidden="true">
+        <rect x="0.5" y="0.5" width="25" height="25" rx="6" fill="var(--sheet)" stroke="var(--rule-2)"/>
+        <rect x="5" y="7" width="3" height="12" rx="1.5" fill="oklch(0.8 0.11 200)"/>
+        <rect x="10" y="10" width="3" height="9" rx="1.5" fill="oklch(0.8 0.11 290)"/>
+        <rect x="15" y="5" width="3" height="14" rx="1.5" fill="oklch(0.8 0.11 80)"/>
+        <rect x="20" y="12" width="2" height="7" rx="1" fill="oklch(0.8 0.11 20)"/>
+      </svg>
+      <h1>Rhyme X-ray</h1>
+    </a>
+    <form class="finder" id="finder" role="search" autocomplete="off">
+      <div class="finder-box">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Find a song by title and artist" aria-label="Find a song" aria-controls="results" aria-expanded="false" aria-autocomplete="list" enterkeyhint="search">
+        <button class="primary" type="submit">Find lyrics</button>
+      </div>
+      <ul class="results" id="results" role="listbox" aria-label="Songs" hidden></ul>
+    </form>
     <div class="top-actions">
+      <button type="button" class="ghost" id="share" title="Copy a link that opens this verse with these settings">Copy link</button>
       <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme" title="Theme">
         <svg class="theme-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
         <svg class="theme-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       </button>
     </div>
   </header>
+  <p class="intro" id="finderNote">See every rhyme in a song, syllable by syllable, including the multisyllabic, internal and slant rhymes that end-rhyme checkers miss. Lyrics come from <a href="https://lrclib.net" target="_blank" rel="noopener">LRCLIB</a>, a free community database. You can also paste your own with Edit text.</p>
 
-  <form class="finder" id="finder" role="search" autocomplete="off">
-    <div class="finder-box">
-      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="Find a song by title and artist, e.g. Lose Yourself Eminem" aria-label="Find a song" aria-controls="results" aria-expanded="false" aria-autocomplete="list" enterkeyhint="search">
-      <button class="primary" type="submit">Find lyrics</button>
+  <section class="songhead" aria-label="Song">
+    <div class="title">
+      <h2 id="songTitle">Your verse</h2>
+      <p class="meta" id="songMeta">&nbsp;</p>
     </div>
-    <ul class="results" id="results" role="listbox" aria-label="Songs" hidden></ul>
-    <p class="finder-note" id="finderNote">Lyrics come from <a href="https://lrclib.net" target="_blank" rel="noopener">LRCLIB</a>, a free community database. You can also paste your own with Edit text.</p>
-  </form>
+    <dl class="readings">
+      <div>
+        <dt>Syllables that rhyme</dt>
+        <dd><b id="rShare">–</b><small id="rShareSub"></small></dd>
+      </div>
+      <div class="reading-multi">
+        <dt>Longest multisyllabic rhyme</dt>
+        <dd><b id="rMulti">–</b><button type="button" class="linkish" id="rLongest" title="Show this rhyme in the verse"><span id="rMultiSub"></span></button></dd>
+      </div>
+    </dl>
+  </section>
 
   <section class="toolbar" aria-label="Matching">
     <div class="tool tier">
-      <span class="tool-label" id="tierLabel">Rhymes</span>
+      <span id="tierLabel">Rhymes</span>
       <div class="seg" role="group" aria-labelledby="tierLabel">
         <button type="button" data-tier="0" aria-pressed="false" title="Same vowel and same following consonants">Perfect</button>
         <button type="button" data-tier="1" aria-pressed="false" title="Also related consonants or one extra consonant">Near</button>
@@ -457,7 +552,7 @@ input[type="range"] { accent-color: var(--accent); }
       <p class="tool-note" id="tierNote"></p>
     </div>
     <div class="tool reach">
-      <label class="tool-label" for="reach">Reach</label>
+      <label for="reach">Reach</label>
       <input type="range" id="reach" min="1" max="8" step="1" value="4" title="How many lines apart two syllables can be and still count as rhyming">
       <output id="reachOut" for="reach">4 lines</output>
     </div>
@@ -468,43 +563,73 @@ input[type="range"] { accent-color: var(--accent); }
     </label>
   </section>
 
-  <section class="readings" aria-label="Readings">
-    <div class="reading"><b id="rShare">–</b><span>syllables rhyme</span><small id="rShareSub">&nbsp;</small></div>
-    <button type="button" class="reading wide jump" id="rLongest" title="Show this rhyme in the verse"><b id="rMulti">–</b><span>longest multisyllabic rhyme</span><small id="rMultiSub">&nbsp;</small></button>
-  </section>
+  <div class="grid" id="grid">
+    <nav class="secnav" id="secnav" aria-label="Sections" hidden>
+      <div class="box">
+        <h2>Sections</h2>
+        <ul id="secList"></ul>
+      </div>
+      <p class="note">Bars show how much of each section rhymes. Rhymes never link across sections.</p>
+    </nav>
 
-  <div class="grid">
-    <section class="sheet-card" id="card" aria-label="Verse">
-      <div class="sheet-bar">
-        <div class="seg" role="group" aria-label="View">
-          <button type="button" id="viewXray" aria-pressed="true">X-ray</button>
-          <button type="button" id="viewEdit" aria-pressed="false">Edit text</button>
+    <section class="verse" id="card" aria-label="Verse">
+      <div class="tabs">
+        <div class="tablist" role="tablist" aria-label="View">
+          <button type="button" class="tab" role="tab" id="viewXray" aria-selected="true">X-ray</button>
+          <button type="button" class="tab" role="tab" id="viewEdit" aria-selected="false">Edit text</button>
         </div>
-        <div class="song" id="song" hidden></div>
-        <div class="bar-right">
-          <button type="button" class="text-btn" id="share" title="Copy a link that opens this verse with these settings">Copy link</button>
-          <label for="examples" style="position:absolute;left:-9999px">Load an example verse</label>
-          <select class="text-btn" id="examples">
+        <div class="tab-right">
+          <label for="examples" class="sr-only">Load an example verse</label>
+          <select class="ghost" id="examples">
             <option value="">Examples…</option>
             <option value="doom">MF DOOM, “Rapp Snitch Knishes”</option>
             <option value="schemes">Rhyme types, one per line</option>
           </select>
+          <button type="button" class="ghost disp-btn" id="dispBtn" aria-haspopup="true" aria-expanded="false" aria-controls="dispMenu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+            Display <span class="disp-sum" id="dispSum"></span>
+          </button>
+        </div>
+        <div class="menu" id="dispMenu" role="group" aria-label="Display options" hidden>
+          <div>
+            <span class="lbl" id="dColours">Colours</span>
+            <div class="seg" role="group" aria-labelledby="dColours">
+              <button type="button" data-colours="tint">Text tint</button>
+              <button type="button" data-colours="ink">Ink</button>
+            </div>
+          </div>
+          <div>
+            <span class="lbl" id="dMultis">Multisyllabic rhymes</span>
+            <div class="seg" role="group" aria-labelledby="dMultis">
+              <button type="button" data-multis="band">Band</button>
+              <button type="button" data-multis="line">Underline</button>
+              <button type="button" data-multis="outline">Outline</button>
+              <button type="button" data-multis="none">Off</button>
+            </div>
+          </div>
+          <div>
+            <span class="lbl" id="dDensity">Spacing</span>
+            <div class="seg" role="group" aria-labelledby="dDensity">
+              <button type="button" data-density="comfortable">Comfortable</button>
+              <button type="button" data-density="compact">Compact</button>
+            </div>
+          </div>
+          <div class="key" aria-label="Key">
+            <span class="lbl">Key</span>
+            <span><span class="mono syl g" style="--h:200">wheel</span> rhyming syllable, coloured by sound</span>
+            <span><span class="mono syl g soft" style="--h:200">sit</span> vowel only (assonance)</span>
+            <span><span class="mono keyrun" style="--rh:50">wheels a-spin</span> multisyllabic, one colour per set</span>
+            <span><span class="mono w guess">skrrt</span> sound guessed from spelling</span>
+          </div>
         </div>
       </div>
       <div class="status" id="status" role="status">
         <span class="track"><i></i></span>
         <span id="statusMsg">Loading the CMU Pronouncing Dictionary (4.7 MB)…</span>
       </div>
-      <div class="legend" aria-label="Legend">
-        <span><i class="k solid">wheel</i> rhyme</span>
-        <span><i class="k soft">sit</i> vowel only (assonance)</span>
-        <span><i class="k multi">wheels a-spin</i> multisyllabic run</span>
-        <span><i class="k guess">skrrt</i> sound guessed from spelling</span>
-        <span class="tip">Hover, tap or Tab to a syllable for its sounds</span>
-      </div>
       <div class="stage" id="stage">
         <div id="lanes" aria-hidden="true"></div>
-        <ol class="lyric" id="lyric" aria-label="Lyrics. Tab into them, then use the arrow keys to move between syllables, Enter to pin a syllable's card, Escape to close it."></ol>
+        <div class="lyric" id="lyric" aria-label="Lyrics. Tab into them, then use the arrow keys to move between syllables, Enter to pin a syllable's details, Escape to let go."></div>
       </div>
       <div class="editor">
         <textarea id="input" spellcheck="false" aria-label="Lyrics">A little grease always keeps the wheels a-spinnin'
@@ -517,11 +642,15 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     </section>
 
     <aside class="rail">
-      <section class="panel" aria-labelledby="h-groups">
+      <section class="panel inspector" id="inspector" aria-labelledby="inspHead">
+        <h2 id="inspHead">Syllable</h2>
+        <div id="inspBody"><p class="empty">Hover, tap or Tab to a syllable to see its sounds. Click it to pin it here.</p></div>
+      </section>
+      <section class="panel list-panel" aria-labelledby="h-groups">
         <h2 id="h-groups">Rhyme groups <small>click to isolate</small></h2>
         <ul class="list" id="groupList"></ul>
       </section>
-      <section class="panel" aria-labelledby="h-multis">
+      <section class="panel list-panel" aria-labelledby="h-multis">
         <h2 id="h-multis">Multisyllabic rhymes</h2>
         <ul class="list" id="multiList"></ul>
       </section>
@@ -608,7 +737,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
         <div class="explain">
           <p>A multisyllabic rhyme is two runs of syllables whose rhyme parts match position by position, across word boundaries. Malmi et al. measure rhyme the same way, as the longest matching vowel sequence.</p>
           <p>A run starts on a stressed syllable on both sides. Stressed positions must match at the chosen category, and two unstressed schwas may stand in for each other. One weak syllable in the middle may break the pattern, because performers swallow those. A run needs at least two positions that carry the rhyme, and repeating the same words doesn't count.</p>
-          <p>Each run is underlined in one colour so it reads as a unit. Back-to-back repeats of a pattern on one line merge into a single underline.</p>
+          <p>Each multisyllabic rhyme gets a colour of its own, separate from the syllable colours, and is drawn as one unit: a band behind it, or an underline or outline if you pick one under Display. Back-to-back repeats of a pattern on one line merge into one.</p>
         </div>
         <div class="demo" id="demo-multi"></div>
       </div>
@@ -661,11 +790,17 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   const E = window.RhymeEngine;
   const $ = id => document.getElementById(id);
   const card = $('card'), lyric = $('lyric'), lanes = $('lanes'), stage = $('stage'), ta = $('input'), pop = $('pop');
+  const root = document.documentElement;
 
   // 14 colours: 12 hues 30° apart plus two lightness variants. Indices come from the engine.
   const HUES = [20, 50, 80, 110, 140, 170, 200, 230, 260, 290, 320, 350, 65, 245];
   const DL = { 12: -0.16, 13: 0.06 };
   const colourVars = c => `--h:${HUES[c % HUES.length]};--dl:${DL[c] || 0}`;
+  // Multisyllabic rhymes get colours of their own, numbered in order within each section,
+  // and drawn on a different layer (band, underline or outline) from the syllable colours.
+  const RUN_HUES = [50, 235, 300, 150, 10, 95];
+  const runVars = i => `--rh:${RUN_HUES[i % RUN_HUES.length]}`;
+  const runOf = m => runVars((state.runIdx && state.runIdx.get(m.id)) || 0);
 
   const EXAMPLES = {
     doom: "A little grease always keeps the wheels a-spinnin'\nLike sitting on twenty threes to get the squealers grinnin'",
@@ -679,6 +814,9 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     'Also related or one extra consonant (wheels / squealers).',
     'Also the same vowel alone (sit / spin), drawn lighter.'
   ];
+  // Display settings: how rhymes are drawn. They change nothing in the analysis.
+  const DISPLAY = { colours: ['tint', 'ink'], multis: ['band', 'line', 'outline', 'none'], density: ['comfortable', 'compact'] };
+  const DISPLAY_NAMES = { tint: 'Tint', ink: 'Ink', band: 'Band', line: 'Underline', outline: 'Outline', none: 'No multis' };
 
   const store = {
     get(k) { try { return localStorage.getItem('rx2.' + k); } catch (e) { return null; } },
@@ -688,8 +826,11 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   const state = {
     ready: false,
     tier: 2, identical: true, reach: 4,
+    colours: 'tint', multis: 'band', density: 'comfortable',
     A: null,
     pinned: null, // { kind: 'group' | 'multi', id }
+    cur: 0, // the section being read; the rail lists follow it
+    unfolded: new Set(), foldedFor: null, // repeated sections opened by the reader, for this text
   };
 
   // restore preferences (the verse itself always starts on the MF DOOM bar)
@@ -697,7 +838,9 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     const t = store.get('tier'); if (t !== null && /^[012]$/.test(t)) state.tier = +t;
     const i = store.get('identical'); if (i !== null) state.identical = i === '1';
     const r = store.get('reach'); if (r !== null && +r >= 1 && +r <= 8) state.reach = +r;
-    const th = store.get('theme'); if (th === 'light' || th === 'dark') document.documentElement.dataset.theme = th;
+    Object.keys(DISPLAY).forEach(k => { const v = store.get(k); if (DISPLAY[k].includes(v)) state[k] = v; });
+    // Dark unless the reader chose light.
+    if (store.get('theme') === 'light') root.dataset.theme = 'light';
   })();
 
   // ------------------------------------------------------------ controls
@@ -719,16 +862,33 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   });
 
   $('themeBtn').addEventListener('click', () => {
-    const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    const next = cur === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = next;
+    const next = root.dataset.theme === 'light' ? 'dark' : 'light';
+    if (next === 'light') root.dataset.theme = 'light'; else delete root.dataset.theme;
     store.set('theme', next);
   });
 
+  // Display menu
+  const dispBtn = $('dispBtn'), dispMenu = $('dispMenu');
+  function syncDisplay() {
+    Object.keys(DISPLAY).forEach(k => {
+      root.dataset[k] = state[k];
+      dispMenu.querySelectorAll(`[data-${k}]`).forEach(b => b.setAttribute('aria-pressed', String(b.dataset[k] === state[k])));
+    });
+    $('dispSum').textContent = `${DISPLAY_NAMES[state.colours]} · ${DISPLAY_NAMES[state.multis]}`;
+  }
+  function setMenu(open) { dispMenu.hidden = !open; dispBtn.setAttribute('aria-expanded', String(open)); }
+  dispBtn.addEventListener('click', () => setMenu(dispMenu.hidden));
+  dispMenu.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const k = Object.keys(DISPLAY).find(x => b.dataset[x]); if (!k) return;
+    state[k] = b.dataset[k]; store.set(k, state[k]); syncDisplay(); relayout();
+  });
+  document.addEventListener('click', e => { if (!dispMenu.hidden && !e.target.closest('#dispMenu, #dispBtn')) setMenu(false); });
+
   function setView(edit) {
     card.classList.toggle('editing', edit);
-    $('viewEdit').setAttribute('aria-pressed', String(edit));
-    $('viewXray').setAttribute('aria-pressed', String(!edit));
+    $('viewEdit').setAttribute('aria-selected', String(edit));
+    $('viewXray').setAttribute('aria-selected', String(!edit));
     hidePop();
     if (edit) { ta.focus(); } else { render(); }
   }
@@ -745,96 +905,196 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
 
   // ------------------------------------------------------------ render
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const headingText = raw => raw.trim().replace(/^[\[(]|[\])]$/g, '').trim();
+  const CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+
+  // Sections as the engine splits them (a blank line or a heading starts one), with their
+  // heading, line range and numbers, and whether they repeat an earlier section word for word.
+  function sectionsOf(A) {
+    const map = new Map();
+    A.lines.forEach(L => {
+      if (!map.has(L.section)) map.set(L.section, { k: L.section, heading: '', lines: [] });
+      const S = map.get(L.section);
+      if (L.heading) { if (!S.heading) S.heading = headingText(L.raw); }
+      else if (L.raw.trim()) S.lines.push(L);
+    });
+    const secs = [...map.values()].filter(S => S.lines.length);
+    const seen = new Map();
+    secs.forEach((S, i) => {
+      S.first = S.lines[0].n + 1;
+      S.last = S.lines[S.lines.length - 1].n + 1;
+      S.label = S.heading || (secs.length > 1 ? 'Section ' + (i + 1) : 'Verse');
+      const sig = S.lines.map(L => L.raw.trim().toLowerCase().replace(/\s+/g, ' ')).join('\n');
+      if (seen.has(sig)) S.repeatOf = seen.get(sig); else seen.set(sig, S);
+      const syls = S.lines.flatMap(L => L.syls);
+      S.share = syls.length ? syls.filter(s => s.group != null).length / syls.length : 0;
+      const start = m => Math.min(...m.spans.map(sp => sp.first));
+      S.multis = A.multis.filter(m => m.spans[0].syls[0].section === S.k).sort((a, b) => start(a) - start(b));
+      S.longest = S.multis.reduce((n, m) => Math.max(n, m.len), 0);
+      S.meta = `${S.lines.length} line${S.lines.length === 1 ? '' : 's'} · ${Math.round(100 * S.share)}% rhyme` + (S.longest ? ` · longest multi ${S.longest}` : '');
+    });
+    return secs;
+  }
+
+  const schemeHTML = L => !L.scheme ? ''
+    : L.scheme === 'x' ? '<span class="sch" title="Line ending does not rhyme">x</span>'
+    : `<span class="sch g" style="${colourVars(L.schemeColor)}" data-scheme-g="${L.syls[L.syls.length - 1].group}" title="End rhyme ${L.scheme}: click to step through the lines in this group">${L.scheme}</span>`;
 
   function render() {
     hidePop();
     if (state.loadingMsg) {
-      lyric.innerHTML = `<li class="ln"><span class="gut"></span><span class="txt" style="color:var(--ink-3)">${esc(state.loadingMsg)}</span></li>`;
+      lyric.innerHTML = `<p class="empty-verse">${esc(state.loadingMsg)}</p>`;
       lanes.innerHTML = '';
       return;
     }
     queueHash();
+    if (state.foldedFor !== ta.value) { state.foldedFor = ta.value; state.unfolded = new Set(); state.cur = 0; resetInspector(); }
     if (!state.ready) { renderPlain(); return; }
     const A = E.analyse(ta.value, { tier: state.tier, identical: state.identical, reach: state.reach });
     state.A = A;
     if (state.pinned && !(state.pinned.kind === 'group' ? A.groups[state.pinned.id] : A.multis.find(m => m.id === state.pinned.id))) state.pinned = null;
+    const secs = sectionsOf(A);
+    state.secs = secs;
+    state.runIdx = new Map();
+    secs.forEach(S => S.multis.forEach((m, i) => state.runIdx.set(m.id, i)));
+    if (!secs.some(S => S.k === state.cur)) state.cur = secs.length ? secs[0].k : 0;
 
     const groupOf = id => { const s = A.syllables[id]; return s.group != null ? A.groups[s.group] : null; };
     let html = '';
-    let num = 0;
-    for (const L of A.lines) {
-      if (L.heading) { html += `<li class="ln head">${esc(L.raw.trim().replace(/^[\[(]|[\])]$/g, ''))}</li>`; continue; }
-      if (!L.raw.trim()) { html += '<li class="ln blank" aria-hidden="true"></li>'; continue; }
-      num++;
-      let out = '', pos = 0;
-      for (const W of L.words) {
-        out += esc(L.raw.slice(pos, W.s));
-        let w = '', p = W.s;
-        for (const s of W.syls || []) {
-          w += esc(L.raw.slice(p, s.cs));
-          const t = esc(L.raw.slice(s.cs, s.ce));
-          const g = groupOf(s.id);
-          w += g
-            ? `<span class="syl g${s.soft ? ' soft' : ''}" tabindex="-1" data-sid="${s.id}" data-g="${g.id}" style="${colourVars(g.color)}">${t}</span>`
-            : `<span class="syl" tabindex="-1" data-sid="${s.id}">${t}</span>`;
-          p = s.ce;
-        }
-        w += esc(L.raw.slice(p, W.e));
-        out += `<span class="w${W.src === 'guess' ? ' guess' : ''}">${w}</span>`;
-        pos = W.e;
+    for (const S of secs) {
+      if (S.repeatOf && !state.unfolded.has(S.k)) {
+        html += `<section class="sec folded" data-sec="${S.k}"><div class="sec-head"><h3>${esc(S.label)}</h3><span class="meta">${S.lines.length} lines · repeat</span></div>` +
+          `<button type="button" class="unfold" data-unfold="${S.k}">${CHEVRON}<span>Same words as lines ${S.repeatOf.first}–${S.repeatOf.last}, folded. <b>Show it</b></span></button></section>`;
+        continue;
       }
-      out += esc(L.raw.slice(pos));
-      const sch = L.scheme
-        ? (L.scheme === 'x'
-          ? `<span class="sch" title="Line ending does not rhyme">x</span>`
-          : `<span class="sch g" style="${colourVars(L.schemeColor)}" data-scheme-g="${L.syls[L.syls.length - 1].group}" title="End rhyme ${L.scheme}: click to step through the lines in this group">${L.scheme}</span>`)
-        : '';
-      html += `<li class="ln"><span class="gut"><span class="num">${num}</span>${sch}</span><span class="txt">${out}</span></li>`;
+      let rows = '';
+      for (const L of S.lines) {
+        let out = '', pos = 0;
+        for (const W of L.words) {
+          out += esc(L.raw.slice(pos, W.s));
+          let w = '', p = W.s;
+          for (const s of W.syls || []) {
+            w += esc(L.raw.slice(p, s.cs));
+            const t = esc(L.raw.slice(s.cs, s.ce));
+            const g = groupOf(s.id);
+            w += g
+              ? `<span class="syl g${s.soft ? ' soft' : ''}" tabindex="-1" data-sid="${s.id}" data-g="${g.id}" style="${colourVars(g.color)}">${t}</span>`
+              : `<span class="syl" tabindex="-1" data-sid="${s.id}">${t}</span>`;
+            p = s.ce;
+          }
+          w += esc(L.raw.slice(p, W.e));
+          out += `<span class="w${W.src === 'guess' ? ' guess' : ''}">${w}</span>`;
+          pos = W.e;
+        }
+        out += esc(L.raw.slice(pos));
+        rows += `<li class="ln"><span class="gut"><span class="num">${L.n + 1}</span>${schemeHTML(L)}</span><span class="txt">${out}</span></li>`;
+      }
+      html += `<section class="sec" data-sec="${S.k}"><div class="sec-head"><h3>${esc(S.label)}</h3><span class="meta">${esc(S.meta)}</span>` +
+        `<span class="scheme" aria-hidden="true">${S.lines.map(schemeHTML).join('')}</span></div><ol class="lines">${rows}</ol></section>`;
     }
-    lyric.innerHTML = html || '<li class="ln"><span class="gut"></span><span class="txt" style="color:var(--ink-3)">Nothing to X-ray yet. Choose Edit text and paste a verse.</span></li>';
+    lyric.innerHTML = html || '<p class="empty-verse">Nothing to X-ray yet. Choose Edit text and paste a verse.</p>';
     lyric.classList.remove('loading');
     setRover(state.rover);
 
     renderReadings(A);
+    renderNav();
     renderLists(A);
     renderHow(A);
     drawLanes();
     applyFocus();
   }
 
+  // Before the dictionary arrives: the text in its sections, uncoloured.
   function renderPlain() {
     lyric.classList.add('loading');
-    let num = 0;
-    lyric.innerHTML = ta.value.split('\n').map(l => /^\s*[\[(][^\])]*[\])]\s*$/.test(l)
-      ? `<li class="ln head">${esc(l.trim().replace(/^[\[(]|[\])]$/g, ''))}</li>`
-      : l.trim()
-      ? `<li class="ln"><span class="gut"><span class="num">${++num}</span></span><span class="txt">${esc(l)}</span></li>`
-      : '<li class="ln blank"></li>').join('');
+    const blocks = [];
+    let cur = null, num = 0;
+    ta.value.split('\n').forEach(l => {
+      if (/^\s*[\[(][^\])]*[\])]\s*$/.test(l)) { if (cur && cur.lines.length) blocks.push(cur); cur = { label: headingText(l), lines: [] }; return; }
+      if (!l.trim()) { if (cur && cur.lines.length) { blocks.push(cur); cur = null; } return; }
+      if (!cur) cur = { label: '', lines: [] };
+      cur.lines.push(l);
+    });
+    if (cur && cur.lines.length) blocks.push(cur);
+    lyric.innerHTML = blocks.map((b, i) => `<section class="sec"><div class="sec-head"><h3>${esc(b.label || (blocks.length > 1 ? 'Section ' + (i + 1) : 'Verse'))}</h3></div><ol class="lines">` +
+      b.lines.map(l => `<li class="ln"><span class="gut"><span class="num">${++num}</span></span><span class="txt">${esc(l)}</span></li>`).join('') + '</ol></section>').join('');
     lanes.innerHTML = '';
   }
 
   function renderReadings(A) {
-    const st = A.stats;
+    const st = A.stats, secs = state.secs || [];
+    const nLines = A.lines.filter(L => L.n >= 0).length;
+    const counts = `${nLines} line${nLines === 1 ? '' : 's'}` + (secs.length > 1 ? ` · ${secs.length} sections` : '');
+    const s = state.song;
+    $('songMeta').textContent = s ? `${s.artist}${s.album ? ' · ' + s.album : ''} · ${counts}` : counts;
     $('rShare').textContent = st.syllables ? Math.round(100 * st.share) + '%' : '–';
-    $('rShareSub').textContent = `${st.rhyming} of ${st.syllables} syllables` + (st.guessed ? ` · ${st.guessed} word${st.guessed === 1 ? '' : 's'} guessed` : '');
+    $('rShareSub').textContent = st.syllables ? `${st.rhyming} of ${st.syllables}` + (st.guessed ? ` · ${st.guessed} word${st.guessed === 1 ? '' : 's'} guessed` : '') : '';
 
     if (st.longest) {
       $('rMulti').textContent = st.longest.len + ' syllables';
       $('rLongest').disabled = false;
-      $('rMultiSub').textContent = `“${st.longest.a}” ↔ “${st.longest.b}”`;
+      $('rMultiSub').textContent = `${st.longest.a} ↔ ${st.longest.b}`;
     } else {
       $('rMulti').textContent = 'None';
       $('rLongest').disabled = true;
-      $('rMultiSub').textContent = 'No run of two or more rhyming syllables found.';
+      $('rMultiSub').textContent = 'no run of two or more rhyming syllables';
     }
   }
 
+  // ------------------------------------------------------------ sections list
+  function renderNav() {
+    const secs = state.secs || [];
+    const many = secs.length > 1;
+    $('secnav').hidden = !many;
+    $('grid').classList.toggle('has-nav', many);
+    $('secList').innerHTML = !many ? '' : secs.map(S => `<li><button type="button" data-goto-sec="${S.k}" aria-current="${S.k === state.cur}">
+      <span class="lbl">${esc(S.label)}${S.repeatOf ? ' · repeat' : ''}</span><span class="rng">${S.first}–${S.last}</span>
+      <span class="dens" aria-hidden="true"><i style="width:${Math.round(100 * S.share)}%"></i></span></button></li>`).join('');
+  }
+  function setCur(k) {
+    if (k === state.cur) return;
+    state.cur = k;
+    document.querySelectorAll('[data-goto-sec]').forEach(b => b.setAttribute('aria-current', String(+b.dataset.gotoSec === k)));
+    if (state.A) renderLists(state.A);
+  }
+  $('secList').addEventListener('click', e => {
+    const b = e.target.closest('[data-goto-sec]'); if (!b) return;
+    const k = +b.dataset.gotoSec;
+    const el = lyric.querySelector(`.sec[data-sec="${k}"]`); if (!el) return;
+    setCur(k);
+    el.scrollIntoView({ block: 'start', behavior: smooth() });
+  });
+  // The section being read is the last one whose top has passed a third of the way down the window.
+  let curRaf = 0;
+  window.addEventListener('scroll', () => {
+    cancelAnimationFrame(curRaf);
+    curRaf = requestAnimationFrame(() => {
+      const els = [...lyric.querySelectorAll('.sec[data-sec]')];
+      if (els.length < 2) return;
+      let k = +els[0].dataset.sec;
+      els.forEach(el => { if (el.getBoundingClientRect().top <= window.innerHeight * 0.35) k = +el.dataset.sec; });
+      setCur(k);
+    });
+  }, { passive: true });
+  lyric.addEventListener('click', e => {
+    const u = e.target.closest('[data-unfold]'); if (!u) return;
+    state.unfolded.add(+u.dataset.unfold);
+    render();
+  });
+
+  // ------------------------------------------------------------ rail lists, for the section being read
   function renderLists(A) {
+    const secs = state.secs || [];
+    const S = secs.length > 1 ? secs.find(x => x.k === state.cur) : null;
+    const inSec = s => !S || s.section === S.k;
+    $('h-groups').innerHTML = (S ? 'Groups in ' + esc(S.label) : 'Rhyme groups') + ' <small>click to isolate</small>';
+    $('h-multis').textContent = S ? 'Multis in ' + S.label : 'Multisyllabic rhymes';
     const gl = $('groupList');
-    if (!A.groups.length) {
-      gl.innerHTML = '<li><p class="empty">No rhymes found at this setting.</p></li>';
+    const groups = A.groups.filter(g => inSec(g.members[0]));
+    if (!groups.length) {
+      gl.innerHTML = `<li><p class="empty">No rhymes found${S ? ' in this section' : ''} at this setting.</p></li>`;
     } else {
-      const ordered = A.groups.slice().sort((a, b) => b.members.length - a.members.length || a.id - b.id);
+      const ordered = groups.slice().sort((a, b) => b.members.length - a.members.length || a.id - b.id);
       gl.innerHTML = ordered.map(g => {
         const soft = g.tier >= E.TIERS.ASSONANCE;
         const pressed = state.pinned && state.pinned.kind === 'group' && state.pinned.id === g.id;
@@ -845,31 +1105,32 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
       }).join('');
     }
     const ml = $('multiList');
-    if (!A.multis.length) {
-      ml.innerHTML = '<li><p class="empty">No multisyllabic rhymes at this setting.</p></li>';
+    const multis = A.multis.filter(m => inSec(m.spans[0].syls[0]));
+    if (!multis.length) {
+      ml.innerHTML = `<li><p class="empty">No multisyllabic rhymes${S ? ' in this section' : ''} at this setting.</p></li>`;
     } else {
-      ml.innerHTML = A.multis.map(m => {
+      ml.innerHTML = multis.map(m => {
         const pressed = state.pinned && state.pinned.kind === 'multi' && state.pinned.id === m.id;
         const texts = [...new Set(m.spans.map(s => s.words))];
         return `<li><button type="button" data-pin-multi="${m.id}" aria-pressed="${pressed}" title="Isolate this rhyme">
-          <span class="mchip" style="${colourVars(m.color)}"></span>
+          <span class="mchip" style="${runOf(m)}"></span>
           <span class="pair">${esc(texts.join(' ↔ '))}</span>
           <span class="n">${m.len}</span></button></li>`;
       }).join('');
     }
   }
 
-  // underline lanes for multisyllabic runs, one bar per visual row of a span
+  // Multisyllabic rhymes, drawn behind the text (band), under it (underline) or around it
+  // (outline), one shape per visual row of a span. Overlapping spans step out by lane.
   function drawLanes() {
     lanes.innerHTML = '';
     const A = state.A;
-    if (!A || card.classList.contains('editing')) return;
+    if (!A || card.classList.contains('editing') || state.multis === 'none') return;
+    const mode = state.multis;
     const base = stage.getBoundingClientRect();
     const frag = document.createDocumentFragment();
     const byId = new Map();
     lyric.querySelectorAll('[data-sid]').forEach(el => byId.set(+el.dataset.sid, el));
-    const probe = lyric.querySelector('.syl.g');
-    const half = probe ? probe.getClientRects()[0].height / 2 : 14;
     A.spans.forEach(sp => {
       if (sp.hidden) return;
       const rows = new Map();
@@ -877,23 +1138,31 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
         const el = byId.get(id);
         if (!el) continue;
         for (const r of el.getClientRects()) {
-          const mid = (r.top + r.bottom) / 2;
-          const key = Math.round(mid / 4);
-          const row = rows.get(key) || { l: Infinity, r: -Infinity, b: mid + half };
+          const key = Math.round((r.top + r.bottom) / 8);
+          const row = rows.get(key) || { l: Infinity, r: -Infinity, t: Infinity, b: -Infinity };
           row.l = Math.min(row.l, r.left); row.r = Math.max(row.r, r.right);
+          row.t = Math.min(row.t, r.top); row.b = Math.max(row.b, r.bottom);
           rows.set(key, row);
         }
       }
       const fam = A.multis.find(m => m.family === sp.family);
       rows.forEach(row => {
         const d = document.createElement('div');
-        d.className = 'bar';
+        d.className = 'bar ' + mode;
         d.dataset.multi = fam ? fam.id : '';
         d.dataset.first = sp.first; d.dataset.last = sp.last;
-        d.setAttribute('style', colourVars(sp.color));
-        d.style.left = (row.l - base.left + 1) + 'px';
-        d.style.width = Math.max(6, row.r - row.l - 2) + 'px';
-        d.style.top = (row.b - base.top + 4 + sp.lane * 6) + 'px';
+        d.setAttribute('style', fam ? runOf(fam) : runVars(0));
+        if (mode === 'line') {
+          d.style.left = (row.l - base.left + 1) + 'px';
+          d.style.width = Math.max(6, row.r - row.l - 2) + 'px';
+          d.style.top = (row.b - base.top + 3 + sp.lane * 5) + 'px';
+        } else {
+          const pad = 3 + sp.lane * 3;
+          d.style.left = (row.l - base.left - pad) + 'px';
+          d.style.width = (row.r - row.l + 2 * pad) + 'px';
+          d.style.top = (row.t - base.top - pad) + 'px';
+          d.style.height = (row.b - row.t + 2 * pad) + 'px';
+        }
         frag.appendChild(d);
       });
     });
@@ -944,7 +1213,6 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     document.querySelectorAll('[data-pin-group],[data-pin-multi]').forEach(b => b.setAttribute('aria-pressed', 'false'));
     applyFocus();
   }
-
 
   // ------------------------------------------------------------ "How it works": live demos
   const DEMO = '<div class="demo-label">From your verse</div>';
@@ -1122,6 +1390,9 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     if (startAt != null) idx = Math.max(0, occ.findIndex(o => o.includes(startAt)));
     else idx = same ? ((state.pinned.step || 0) + 1) % occ.length : 0;
     state.pinned = { kind, id, step: idx };
+    // A folded repeat opens when something in it is asked for.
+    const shut = [...new Set(occ[idx].map(sid => state.A.syllables[sid].section))].filter(k => !lyric.querySelector(`.sec[data-sec="${k}"] .lines`));
+    if (shut.length) { shut.forEach(k => state.unfolded.add(k)); render(); }
     hoverSid = null; hidePop(); applyFocus();
     reveal(occ[idx].map(sylEl));
   }
@@ -1142,11 +1413,15 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     e.stopPropagation();
     jump('group', +c.dataset.schemeG);
   });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') { hidePop(); clearPin(); } });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { hidePop(); clearPin(); setMenu(false); } });
 
-  // ------------------------------------------------------------ popover
+  // ------------------------------------------------------------ syllable details
+  // Beside the verse (wide windows) the details fill the panel at the top of the rail; on
+  // narrower screens they open in a card over the syllable.
   const TIER_WORDS = ['perfect rhyme', 'near rhyme', 'assonance', 'schwa match'];
   const SRC = { dict: 'CMU dictionary', norm: 'normalised spelling', guess: 'guessed from spelling' };
+  const docked = matchMedia('(min-width: 961px)');
+  const insp = $('inspector');
   function showPop(el, frozen) {
     const A = state.A; if (!A) return;
     const s = A.syllables[+el.dataset.sid]; if (!s) return;
@@ -1162,13 +1437,24 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     rows += `<dt>Rhyme part</dt><dd class="m">/${esc(s.rhyme)}/</dd>`;
     if (g && partner) rows += `<dt>Rhymes with</dt><dd>“${esc(pText)}”${partner.word !== W && partner.word.syls.length > 1 ? ` in ${esc(partner.word.text)}` : ''} (${where}) <span class="tag">${TIER_WORDS[s.tier] || 'match'}</span></dd>`;
     if (g) rows += `<dt>Group</dt><dd><span class="m">/${esc(g.key)}/</span> · ${g.members.length} syllables</dd>`;
-    if (inMulti.length) rows += `<dt>Multi</dt><dd>part of a ${Math.max(...inMulti.map(m => m.len))}-syllable rhyme</dd>`;
+    if (inMulti.length) {
+      const m = inMulti.reduce((a, b) => (b.len > a.len ? b : a));
+      rows += `<dt>Multi</dt><dd><span class="rswatch" style="${runOf(m)}"></span>part of a ${m.len}-syllable rhyme</dd>`;
+    }
     if (!g && !inMulti.length) rows += `<dt>Rhymes with</dt><dd>${s.eligible ? 'nothing within reach' : 'not compared alone (unstressed or a function word)'}</dd>`;
     rows += `<dt>Source</dt><dd>${SRC[W.src] || '–'}${W.as ? `, read as “${esc(W.as)}”` : ''}</dd>`;
     if (W.altIPA && W.altIPA.length) rows += `<dt>Reading</dt><dd>${esc(W.reading || '')}; also <span class="m">/${W.altIPA.map(esc).join('/, /')}/</span></dd>`;
+    const body = `<button type="button" class="x" aria-label="Close">×</button><div class="hd"><span class="w">${esc(W.text)}</span><span class="ipa">/${esc(W.ipa || '')}/</span></div><dl>${rows}</dl><div class="hint">Pinned. Select any text to copy it. Esc or click elsewhere to close.</div>`;
+    if (docked.matches) {
+      insp.className = 'panel inspector' + (g ? ' g' : '') + (frozen ? ' pinned' : '');
+      insp.setAttribute('style', g ? colourVars(g.color) : '');
+      $('inspHead').textContent = (frozen ? 'Pinned · ' : '') + 'line ' + (s.line + 1);
+      $('inspBody').innerHTML = body;
+      return;
+    }
     pop.className = 'pop' + (g ? ' g' : '');
     pop.setAttribute('style', g ? colourVars(g.color) : '');
-    pop.innerHTML = `<button type="button" class="x" aria-label="Close">×</button><div class="hd"><span class="w">${esc(W.text)}</span><span class="ipa">/${esc(W.ipa || '')}/</span></div><dl>${rows}</dl><div class="hint">Pinned. Select any text to copy it. Esc or click elsewhere to close.</div>`;
+    pop.innerHTML = body;
     pop.hidden = false;
     if (frozen) pop.classList.add('frozen');
     placePop(el, frozen);
@@ -1189,12 +1475,27 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     pop.style.setProperty('--ax', Math.min(Math.max(16, cx - left), pw - 16) + 'px');
     pop.style.setProperty('--dy', above ? '4px' : '-4px');
   }
-  function hidePop() { pop.hidden = true; state.frozen = null; }
+  // Letting go keeps the last syllable in the panel, unpinned, so it can still be read.
+  function hidePop() {
+    pop.hidden = true;
+    if (state.frozen != null) {
+      insp.classList.remove('pinned');
+      $('inspHead').textContent = $('inspHead').textContent.replace(/^Pinned · /, '');
+    }
+    state.frozen = null;
+  }
+  function resetInspector() {
+    insp.className = 'panel inspector';
+    insp.removeAttribute('style');
+    $('inspHead').textContent = 'Syllable';
+    $('inspBody').innerHTML = '<p class="empty">Hover, tap or Tab to a syllable to see its sounds. Click it to pin it here.</p>';
+  }
   function freeze(el) {
     state.frozen = +el.dataset.sid;
     hoverSid = null;
     showPop(el, true);
   }
+  docked.addEventListener('change', () => { hidePop(); clearPin(); resetInspector(); });
 
   // Keyboard: the verse is one Tab stop; arrow keys move between syllables, Enter or Space pins.
   function setRover(sid) {
@@ -1234,9 +1535,11 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     if (el.tabIndex !== 0) setRover(+el.dataset.sid);
     if (state.frozen != null) return;
     hoverSid = +el.dataset.sid; applyFocus(); showPop(el);
-    // Read the card out for screen readers.
-    const rows = [...pop.querySelectorAll('dt')].map(dt => `${dt.textContent}: ${dt.nextElementSibling ? dt.nextElementSibling.textContent : ''}`);
-    $('sr').textContent = `${pop.querySelector('.w').textContent}. ${rows.join('. ')}`;
+    // Read the details out for screen readers.
+    const box = docked.matches ? insp : pop;
+    const rows = [...box.querySelectorAll('dt')].map(dt => `${dt.textContent}: ${dt.nextElementSibling ? dt.nextElementSibling.textContent : ''}`);
+    const w = box.querySelector('.w');
+    $('sr').textContent = `${w ? w.textContent : ''}. ${rows.join('. ')}`;
   });
   lyric.addEventListener('focusout', e => {
     if (lyric.contains(e.relatedTarget) || state.frozen != null) return;
@@ -1244,12 +1547,12 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   });
 
   lyric.addEventListener('mouseover', e => {
-    if (state.frozen != null) return; // a pinned card stays put
+    if (state.frozen != null) return; // a pinned syllable stays put
     const el = e.target.closest('.syl'); if (!el || !state.A) return;
     hoverSid = +el.dataset.sid; applyFocus(); showPop(el);
   });
   lyric.addEventListener('mouseleave', () => { if (state.frozen != null) return; hoverSid = null; applyFocus(); hidePop(); });
-  // Clicking a syllable pins its card (so its text can be selected) and isolates its group.
+  // Clicking a syllable pins its details (so their text can be selected) and isolates its group.
   // Clicking it again, pressing Esc, or clicking elsewhere lets go.
   lyric.addEventListener('click', e => {
     const el = e.target.closest('.syl');
@@ -1263,10 +1566,12 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   });
   let downInPop = false;
   pop.addEventListener('mousedown', () => { downInPop = true; });
+  insp.addEventListener('mousedown', () => { downInPop = true; });
   pop.addEventListener('click', e => { if (e.target.closest('.x')) { hidePop(); clearPin(); } });
+  insp.addEventListener('click', e => { if (e.target.closest('.x')) { hidePop(); clearPin(); } });
   document.addEventListener('click', e => {
-    if (downInPop) { downInPop = false; return; } // a text selection that ended outside the card
-    if (state.frozen == null || e.target.closest('#pop') || e.target.closest('.syl')) return;
+    if (downInPop) { downInPop = false; return; } // a text selection that ended outside the details
+    if (state.frozen == null || e.target.closest('#pop, #inspector, .syl')) return;
     hidePop(); clearPin();
   });
   stage.addEventListener('click', e => { if (!e.target.closest('.syl') && !e.target.closest('.sch.g')) { hidePop(); clearPin(); } });
@@ -1282,13 +1587,12 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(() => {
       drawLanes(); applyFocus();
-      if (state.frozen != null) { const el = sylEl(state.frozen); if (el) placePop(el, true); else hidePop(); }
+      if (state.frozen != null && !docked.matches) { const el = sylEl(state.frozen); if (el) placePop(el, true); else hidePop(); }
     });
   };
   window.addEventListener('resize', relayout);
   new ResizeObserver(relayout).observe(lyric);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
-
 
   // ------------------------------------------------------------ song search (LRCLIB)
   const qIn = $('q'), results = $('results'), note = $('finderNote');
@@ -1299,14 +1603,10 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
 
   function setSong(song) {
     state.song = song;
-    const el = $('song');
-    if (song) {
-      el.innerHTML = `${esc(song.track)} <span>· ${esc(song.artist)}</span>`;
-      el.title = `${song.track} by ${song.artist}${song.album ? ', from ' + song.album : ''}${song.lrclib ? '. Lyrics from LRCLIB.' : ''}`;
-      el.hidden = false;
-    } else {
-      el.hidden = true; el.textContent = '';
-    }
+    $('songTitle').textContent = song ? song.track : 'Pasted lyrics';
+    $('songMeta').textContent = song ? song.artist + (song.album ? ' · ' + song.album : '') : '';
+    $('songMeta').title = song && song.lrclib ? 'Lyrics from LRCLIB' : '';
+    document.title = song ? `${song.track} · Rhyme X-ray` : 'Rhyme X-ray';
   }
   // The page always opens on the MF DOOM bar.
   ta.value = EXAMPLES.doom;
@@ -1510,6 +1810,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   }
 
   syncControls();
+  syncDisplay();
   if (location.hash.length > 1) state.loadingMsg = 'Opening the shared link…';
   render();
   openHash();

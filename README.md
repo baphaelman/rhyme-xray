@@ -29,15 +29,25 @@ every word is guessed from its spelling instead and results get rougher.
 - **Edit text** to paste your own verse, then **X-ray it** (or press Ctrl/⌘+Enter).
   Lines such as `[Chorus]` become section headings and are not analysed. A blank line or a
   heading starts a new section: rhymes never link across one, and end-rhyme letters restart.
+- Each section gets its own card with its line count, how much of it rhymes, its longest
+  multi and its rhyme scheme. With more than one section, a list on the left jumps between
+  them, and the rhyme groups and multis on the right follow the section you're reading.
+  A section that repeats an earlier one word for word (a second chorus) is folded;
+  **Show it** opens it.
 - **Copy link** copies an address that reopens the verse with the same settings: an LRCLIB
   song by its id, an example by name, or pasted text compressed into the address. The
   address bar keeps up as you go, so it can be copied from there too.
-- Hover or tap a syllable, or Tab into the verse and move with the arrow keys. A card
-  shows the word and syllable in IPA, its rhyme part, what it rhymes with (and on which
-  line), the match type, where the pronunciation came from, and which reading was chosen
-  when a word has several.
-- Click a syllable (or press Enter on it) to pin its card, then select any of its text to
-  copy. Esc, the × or a click elsewhere closes it.
+- Hover or tap a syllable, or Tab into the verse and move with the arrow keys. Its details
+  (the word and syllable in IPA, its rhyme part, what it rhymes with and on which line, the
+  match type, where the pronunciation came from, and which reading was chosen when a word
+  has several) fill the panel at the top of the right-hand column. On a phone or a narrow
+  window they open in a card over the syllable instead.
+- Click a syllable (or press Enter on it) to pin its details, then select any of the text
+  to copy. Esc, the × or a click elsewhere lets go.
+- **Display** sets how rhymes are drawn: **Text tint** colours the letters, **Ink** sets
+  them on coloured chips; multisyllabic rhymes show as a band, an underline, an outline or
+  not at all; spacing is comfortable or compact. The page is dark by default and the
+  sun/moon button switches theme. Your browser remembers these choices.
 - **How Rhyme X-ray works**, below the verse, explains the eight steps one dropdown at a
   time. Each step shows, beside the rule, what it did to the verse on screen: the IPA
   of its words, the syllables and rhyme parts, the pairs at each match type, and the
@@ -57,11 +67,11 @@ Reading the colours:
 
 | Mark | Meaning |
 | --- | --- |
-| Solid fill | perfect or near rhyme with another syllable of the same colour |
-| Light fill | linked by vowel only (assonance) |
-| Underline | a multisyllabic run; matching runs share the underline colour |
+| Coloured letters (Text tint) or chip (Ink) | perfect or near rhyme with another syllable of the same colour |
+| Fainter colour | linked by vowel only (assonance) |
+| Band (or underline / outline) | a multisyllabic rhyme; every part of one shares its own colour |
 | Dotted underline | a word not in the dictionary; its sounds were guessed from the spelling |
-| Letter in the margin | the end-rhyme scheme (A, B, …; `x` = the line ending does not rhyme) |
+| Letter beside the line number | the end-rhyme scheme, coloured like the rhyme it stands for (A, B, …; `x` = the line ending does not rhyme) |
 
 ## How it decides
 
@@ -82,7 +92,7 @@ Reading the colours:
      verse and "bed" in another, and "again" with "pain". An explicit grammar cue needs
      a perfect or end rhyme to be overruled.
    - Function words ("a", "the", "to") always keep their usual reading.
-   - The hover card says which reading was used and why.
+   - The syllable details say which reading was used and why.
 3. **Syllables.** Phonemes are split into syllables. A syllable's *rhyme part* is its vowel
    plus every consonant up to the next vowel. A consonant between vowels counts for both
    syllables, which is how "squeal-ers" rhymes with "wheels".
@@ -101,7 +111,8 @@ Reading the colours:
    schwas may stand in for each other. One syllable without primary stress may break the
    pattern in the middle (shadow boxing / battle rocking). A run needs at least two
    positions that carry the rhyme. A run that only repeats the same words is ignored.
-   Overlapping runs of one pattern on a line are drawn as a single chained underline.
+   Overlapping runs of one pattern on a line are drawn as one. Each multisyllabic rhyme
+   gets a colour of its own, separate from the syllable colours.
 7. **Groups and colours.** Links (single or inside a multi) join syllables into groups,
    closest tier first. A link never merges two groups that are each held together by a
    closer tier: near rhymes don't fuse two sets of perfect rhymes (peace / lease and
