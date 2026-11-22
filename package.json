@@ -1,0 +1,13 @@
+{
+  "name": "rhyme-xray",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Syllable-level rhyme highlighter for rap verses and lyrics",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "devDependencies": {
+    "cmu-pronouncing-dictionary": "3.0.0"
+  }
+}
