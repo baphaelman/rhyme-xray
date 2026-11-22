@@ -224,7 +224,7 @@ kbd { font: 12px var(--f-mono); padding: 1px 5px; border: 1px solid var(--rule);
 input[type="range"] { accent-color: var(--accent); }
 
 .readings {
-  display: grid; grid-template-columns: 1fr 1fr 2.2fr 1.2fr; margin-bottom: 20px;
+  display: grid; grid-template-columns: 1.1fr 2.4fr 1.3fr; margin-bottom: 20px;
   background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px;
 }
 .reading { min-width: 0; padding: 12px 16px; }
@@ -234,11 +234,7 @@ input[type="range"] { accent-color: var(--accent); }
 .reading small { display: block; font-size: 12px; color: var(--ink-3); margin-top: 2px; overflow-wrap: anywhere; }
 @media (max-width: 760px) {
   .readings { grid-template-columns: 1fr 1fr; }
-  .reading + .reading { border-left: 0; }
-  .reading:nth-child(even) { border-left: 1px solid var(--rule); }
-  .reading:nth-child(n+3) { border-top: 1px solid var(--rule); }
-  .reading.wide { grid-column: 1 / -1; border-left: 0; }
-  .reading:last-child { grid-column: 1 / -1; border-left: 0; }
+  .readings .reading.wide { grid-column: 1 / -1; order: 3; border-left: 0; border-top: 1px solid var(--rule); }
 }
 
 .song { flex: 1; min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -393,7 +389,6 @@ input[type="range"] { accent-color: var(--accent); }
 
   <section class="readings" aria-label="Readings">
     <div class="reading"><b id="rShare">–</b><span>syllables rhyme</span><small id="rShareSub">&nbsp;</small></div>
-    <div class="reading"><b id="rGroups">–</b><span>rhyme groups</span><small id="rGroupsSub">&nbsp;</small></div>
     <button type="button" class="reading wide jump" id="rLongest" title="Show this rhyme in the verse"><b id="rMulti">–</b><span>longest multisyllabic rhyme</span><small id="rMultiSub">&nbsp;</small></button>
     <div class="reading" title="Average length of each word's longest matching vowel run (Malmi et al. 2016). The DopeLearning study measured 0.87–1.19 across 94 artists' full catalogues."><b id="rDensity">–</b><span>rhyme density</span><small>Raplyzer measure; rappers score 0.87–1.19</small></div>
   </section>
@@ -410,8 +405,7 @@ input[type="range"] { accent-color: var(--accent); }
           <label for="examples" style="position:absolute;left:-9999px">Load an example verse</label>
           <select class="text-btn" id="examples">
             <option value="">Examples…</option>
-            <option value="grease">Grease (two-liner)</option>
-            <option value="steel">Cold steel (demo verse)</option>
+            <option value="doom">MF DOOM: “A little grease…”</option>
             <option value="schemes">Rhyme types, one per line</option>
           </select>
         </div>
@@ -501,12 +495,12 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   const colourVars = c => `--h:${HUES[c % HUES.length]};--dl:${DL[c] || 0}`;
 
   const EXAMPLES = {
-    grease: "A little grease always keeps the wheels a-spinnin'\nLike sitting on twenty threes to get the squealers grinnin'",
-    steel: "Cold steel, gold wheels, roll deals in the low field\nOld feels, slow heals, I don't kneel and I won't yield\nPressure making diamonds, I was raised inside the silence\nEvery lesson was a violence, now I'm finished with the sirens",
+    doom: "A little grease always keeps the wheels a-spinnin'\nLike sitting on twenty threes to get the squealers grinnin'",
     // Each line explains its type, and its label rhymes in exactly that type. Every other
     // stressed vowel is used once in the whole example, so no line links to another.
-    schemes: "Perfect: the tail is correct\nNear: the coda grew a beard\nAssonance: vowels, not consonants: a pal in a cab\nMulti: words that line up, sultry"
+    schemes: "Perfect: the tail is correct\nNear: the coda grew a beard\nAssonance: vowels, not consonants: a pal in a cab\nMulti: it lines up in full with sultry"
   };
+  const CREDITS = { doom: { track: '“A little grease…”', artist: 'MF DOOM', album: '' } };
   const TIER_NOTES = [
     'Same vowel and same consonants after it (spin / grin).',
     'Also related or one extra consonant (wheels / squealers).',
@@ -525,12 +519,11 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     pinned: null, // { kind: 'group' | 'multi', id }
   };
 
-  // restore preferences and draft
+  // restore preferences (the verse itself always starts on the MF DOOM bar)
   (function restore() {
     const t = store.get('tier'); if (t !== null && /^[012]$/.test(t)) state.tier = +t;
     const i = store.get('identical'); if (i !== null) state.identical = i === '1';
     const r = store.get('reach'); if (r !== null && +r >= 1 && +r <= 8) state.reach = +r;
-    const d = store.get('draft'); if (d) ta.value = d;
     const th = store.get('theme'); if (th === 'light' || th === 'dark') document.documentElement.dataset.theme = th;
   })();
 
@@ -570,10 +563,10 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   $('viewXray').addEventListener('click', () => setView(false));
   $('done').addEventListener('click', () => setView(false));
   ta.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); setView(false); } });
-  ta.addEventListener('input', () => { store.set('draft', ta.value); if (state.song) setSong(null); });
+  ta.addEventListener('input', () => { if (state.song) setSong(null); });
   $('examples').addEventListener('change', e => {
     const v = EXAMPLES[e.target.value];
-    if (v) { ta.value = v; store.set('draft', v); setSong(null); state.pinned = null; setView(false); }
+    if (v) { ta.value = v; setSong(CREDITS[e.target.value] || null); state.pinned = null; setView(false); }
     e.target.value = '';
   });
 
@@ -642,9 +635,8 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   function renderReadings(A) {
     const st = A.stats;
     $('rShare').textContent = st.syllables ? Math.round(100 * st.share) + '%' : '–';
-    $('rShareSub').textContent = `${st.rhyming} of ${st.syllables} syllables`;
-    $('rGroups').textContent = st.groups;
-    $('rGroupsSub').textContent = st.guessed ? `${st.guessed} word${st.guessed === 1 ? '' : 's'} guessed from spelling` : 'every word found in the dictionary';
+    $('rShareSub').textContent = `${st.rhyming} of ${st.syllables} syllables` + (st.guessed ? ` · ${st.guessed} word${st.guessed === 1 ? '' : 's'} guessed` : '');
+
     if (st.longest) {
       $('rMulti').textContent = st.longest.len + ' syllables';
       $('rLongest').disabled = false;
@@ -898,15 +890,15 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     const el = $('song');
     if (song) {
       el.innerHTML = `${esc(song.track)} <span>· ${esc(song.artist)}</span>`;
-      el.title = `${song.track} by ${song.artist}${song.album ? ', from ' + song.album : ''}. Lyrics from LRCLIB.`;
+      el.title = `${song.track} by ${song.artist}${song.album ? ', from ' + song.album : ''}${song.lrclib ? '. Lyrics from LRCLIB.' : ''}`;
       el.hidden = false;
-      store.set('song', JSON.stringify(song));
     } else {
       el.hidden = true; el.textContent = '';
-      store.set('song', '');
     }
   }
-  try { const s = JSON.parse(store.get('song') || 'null'); if (s && s.track) setSong(s); } catch (e) { /* ignore */ }
+  // The page always opens on the MF DOOM bar.
+  ta.value = EXAMPLES.doom;
+  setSong(CREDITS.doom);
 
   const fmtTime = sec => sec ? `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}` : '';
   function cleanLyrics(t) {
@@ -980,8 +972,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   function pick(i) {
     const r = found[i]; if (!r) return;
     ta.value = cleanLyrics(r.plainLyrics);
-    store.set('draft', ta.value);
-    setSong({ track: r.trackName, artist: r.artistName, album: r.albumName || '' });
+    setSong({ track: r.trackName, artist: r.artistName, album: r.albumName || '', lrclib: true });
     closeResults();
     qIn.blur();
     state.pinned = null;

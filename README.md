@@ -9,6 +9,10 @@ rhymes (same vowel, different consonants).
 
 **Try it:** <https://baphaelman.github.io/rhyme-xray/>
 
+The page opens on an MF DOOM bar ("A little grease always keeps the wheels a-spinnin' /
+Like sitting on twenty threes to get the squealers grinnin'"). Its four-syllable rhyme
+"wheels a-spinnin'" ↔ "squealers grinnin'" is exactly what spelling-based checkers miss.
+
 ## Run it
 
 Open `index.html` in a browser. There is no build step.

@@ -190,7 +190,7 @@ describe('presentation', () => {
     assert.ok(sameGroup(A, 'peace', 'lease'));
   });
   test('the rhyme-types example keeps every rhyme on its own line', () => {
-    const text = 'Perfect: the tail is correct\nNear: the coda grew a beard\nAssonance: vowels, not consonants: a pal in a cab\nMulti: words that line up, sultry';
+    const text = 'Perfect: the tail is correct\nNear: the coda grew a beard\nAssonance: vowels, not consonants: a pal in a cab\nMulti: it lines up in full with sultry';
     const A = E.analyse(text);
     A.groups.forEach(g => assert.equal(g.firstLine, g.lastLine, `group /${g.key}/ spans lines`));
     assert.equal(A.lines.map(l => l.scheme).join(''), 'ABCD');
