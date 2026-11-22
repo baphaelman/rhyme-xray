@@ -345,7 +345,10 @@
     let n = 0;
     const wordRe = /['’]?[A-Za-z0-9]+(?:['’][A-Za-z0-9]+)*['’]?/g;
     text.replace(/\r\n?/g, '\n').split('\n').forEach((raw, index) => {
-      const L = { raw, index, n: raw.trim() ? n++ : -1, words: [], syls: [] };
+      // Section labels such as "[Chorus]" or "(Verse 2)" are headings, not lyrics.
+      const heading = /^\s*[\[(][^\])]*[\])]\s*$/.test(raw);
+      const L = { raw, index, heading, n: raw.trim() && !heading ? n++ : -1, words: [], syls: [] };
+      if (heading) { lines.push(L); return; }
       let m;
       wordRe.lastIndex = 0;
       while ((m = wordRe.exec(raw))) L.words.push({ s: m.index, e: m.index + m[0].length, text: m[0] });

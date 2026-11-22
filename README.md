@@ -19,14 +19,20 @@ every word is guessed from its spelling instead and results get rougher.
 
 ## Use it
 
-- **Edit text** to paste a verse, then **X-ray it** (or press Ctrl/⌘+Enter).
+- **Find a song**: type a title and artist, pick a match, and the lyrics load and get
+  X-rayed. Lyrics come from [LRCLIB](https://lrclib.net), a free community lyrics database.
+  The page fetches them in your browser; nothing is stored in this repo.
+- **Edit text** to paste your own verse, then **X-ray it** (or press Ctrl/⌘+Enter).
+  Lines such as `[Chorus]` become section headings and are not analysed.
 - Hover or tap a coloured syllable. The strip under the verse shows the word and syllable
   in IPA, its rhyme part, what it matched and how, and where the pronunciation came from.
-- Click a syllable, a rhyme group or a multisyllabic rhyme in the side panel to isolate it.
+- Click a syllable, a rhyme group or a multisyllabic rhyme in the side lists to isolate it.
   Press Esc to clear.
 - **What counts as a rhyme** sets the loosest match allowed: Perfect, Near or Assonance.
 - **A word rhymes with itself** decides whether repeating a word counts as a rhyme.
 - **Reach** sets how many lines apart two syllables may be and still count as rhyming.
+- **Examples → Rhyme types, one per line** shows one line per type. The type word itself
+  takes part in a rhyme of that type ("Near … beard", "Multi … sultry").
 
 Reading the colours:
 
@@ -123,6 +129,9 @@ rules. The tests in `test/engine.test.mjs` encode the points they agree on.
   vowel-based breakdowns, but stray links between common vowels do appear. Switch to Near
   for a stricter view.
 - Spelling guesses are crude: they only cover what the normalisation rules miss.
+- Over a whole song, groups chain from window to window, so one vowel can form a large
+  group. The group list shows each group's line range.
+- Song search depends on LRCLIB's coverage and transcriptions.
 
 ## Develop
 

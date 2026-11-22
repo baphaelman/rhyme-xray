@@ -91,6 +91,8 @@ button, input, textarea { font: inherit; color: inherit; }
 /* ---------- main grid ---------- */
 .grid { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 20px; align-items: start; }
 @media (max-width: 960px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.grid { grid-template-columns: minmax(0, 1fr) 300px; }
+@media (max-width: 960px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 
 .sheet-card { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; box-shadow: var(--shadow); min-width: 0; }
 .sheet-bar {
@@ -171,35 +173,90 @@ kbd { font: 12px var(--f-mono); padding: 1px 5px; border: 1px solid var(--rule);
 .status.err { color: var(--ink); }
 .status.err .track { display: none; }
 
-/* ---------- rail ---------- */
-.rail { display: grid; gap: 14px; min-width: 0; }
-.panel { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 14px 16px; min-width: 0; }
-.panel h2 { margin: 0 0 10px; font: 600 12px/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.panel h2 small { font: 500 12px var(--f-ui); letter-spacing: 0; text-transform: none; color: var(--ink-3); }
+/* ---------- finder ---------- */
+.finder { position: relative; margin-bottom: 14px; }
+.finder-box {
+  display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px;
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; box-shadow: var(--shadow);
+}
+.finder-box:focus-within { border-color: var(--accent); }
+.finder-box svg { width: 18px; height: 18px; color: var(--ink-3); flex: none; }
+.finder-box input {
+  flex: 1; min-width: 0; border: 0; background: transparent; padding: 8px 0; font-size: 16px; outline: none;
+}
+.finder-box input::-webkit-search-cancel-button { cursor: pointer; }
+.finder-box .primary { padding: 9px 16px; border-radius: 10px; flex: none; }
+.finder-note { margin: 8px 4px 0; font-size: 13px; color: var(--ink-3); }
+.finder-note a { color: var(--ink-2); }
+.finder-note.err { color: var(--ink); }
+.results {
+  position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% - 26px); margin: 0; padding: 6px; list-style: none;
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px;
+  box-shadow: 0 18px 40px -12px rgb(0 0 0 / .35); max-height: min(420px, 60vh); overflow-y: auto;
+}
+.results[hidden] { display: none; }
+.results li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; padding: 9px 10px; border-radius: 9px; cursor: pointer; }
+.results li[aria-selected="true"], .results li:hover { background: var(--ground); }
+.results .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.results .a { color: var(--ink-2); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; grid-column: 1; }
+.results .d { font: 12.5px var(--f-mono); color: var(--ink-3); grid-row: 1 / span 2; grid-column: 2; align-self: center; }
+.results .msg { display: block; color: var(--ink-2); cursor: default; }
+.results .msg:hover { background: none; }
 
-.ctl + .ctl { margin-top: 14px; }
-.ctl-label { display: flex; justify-content: space-between; align-items: baseline; font-size: 13.5px; font-weight: 500; margin-bottom: 7px; }
-.ctl-label output { font: 500 13px var(--f-mono); color: var(--ink-2); }
-.ctl .seg { width: 100%; }
-.ctl .seg button { flex: 1; padding: 6px 6px; font-size: 13.5px; }
-.ctl-note { font-size: 12.5px; color: var(--ink-2); margin: 7px 0 0; min-height: 2.6em; }
-.switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; font-size: 13.5px; font-weight: 500; }
+/* ---------- toolbar + readings (above the verse) ---------- */
+.toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 26px; padding: 12px 16px;
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; margin-bottom: 12px;
+}
+.tool { display: flex; align-items: center; gap: 10px; }
+.tool-label { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.tool.reach input { width: 140px; }
+.tool.reach output { font: 500 13px var(--f-mono); color: var(--ink-2); min-width: 7ch; }
+.tool-note { flex: 1 1 220px; margin: 0; font-size: 12.5px; color: var(--ink-3); }
+.switch { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; font-weight: 500; }
 .switch input { position: absolute; opacity: 0; pointer-events: none; }
 .switch .track { width: 36px; height: 21px; border-radius: 11px; background: var(--rule); position: relative; transition: background .15s; flex: none; }
 .switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 15px; height: 15px; border-radius: 50%; background: var(--sheet); box-shadow: 0 1px 2px rgb(0 0 0 / .3); transition: transform .15s; }
 .switch input:checked + .track { background: var(--accent); }
 .switch input:checked + .track::after { transform: translateX(15px); }
 .switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
-input[type="range"] { width: 100%; accent-color: var(--accent); }
+input[type="range"] { accent-color: var(--accent); }
 
-.readings { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 12px; }
-.reading { min-width: 0; }
+.readings {
+  display: grid; grid-template-columns: 1fr 1fr 2.2fr 1.2fr; margin-bottom: 20px;
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px;
+}
+.reading { min-width: 0; padding: 12px 16px; }
+.reading + .reading { border-left: 1px solid var(--rule); }
 .reading b { display: block; font: 600 26px/1.1 var(--f-head); font-variant-numeric: tabular-nums; }
 .reading span { display: block; font-size: 12.5px; color: var(--ink-2); }
 .reading small { display: block; font-size: 12px; color: var(--ink-3); margin-top: 2px; overflow-wrap: anywhere; }
-.reading.wide { grid-column: 1 / -1; }
+@media (max-width: 760px) {
+  .readings { grid-template-columns: 1fr 1fr; }
+  .reading + .reading { border-left: 0; }
+  .reading:nth-child(even) { border-left: 1px solid var(--rule); }
+  .reading:nth-child(n+3) { border-top: 1px solid var(--rule); }
+  .reading.wide { grid-column: 1 / -1; border-left: 0; }
+  .reading:last-child { grid-column: 1 / -1; border-left: 0; }
+}
 
-.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 320px; overflow-y: auto; margin-inline: -6px; }
+.song { flex: 1; min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.song span { color: var(--ink-2); font-weight: 400; }
+.ln.head { display: block; padding: 14px 0 0 52px; font: 600 11.5px/1.6 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+@media (max-width: 600px) { .ln.head { padding-left: 34px; } .tool.reach input { width: 110px; } }
+
+/* ---------- rail ---------- */
+.rail { display: grid; gap: 14px; min-width: 0; }
+@media (min-width: 961px) {
+  .rail { position: sticky; top: 16px; }
+  .rail .panel { display: flex; flex-direction: column; min-height: 0; max-height: calc((100vh - 46px) / 2); }
+  .rail .list { max-height: none; flex: 1; min-height: 0; }
+}
+.panel { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 14px 16px; min-width: 0; }
+.panel h2 { margin: 0 0 10px; font: 600 12px/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.panel h2 small { font: 500 12px var(--f-ui); letter-spacing: 0; text-transform: none; color: var(--ink-3); }
+
+.list { list-style: none; margin: 0; padding: 0; display: grid; align-content: start; gap: 2px; max-height: 320px; overflow-y: auto; margin-inline: -6px; }
 .list button {
   width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center;
   text-align: left; padding: 6px; border-radius: 8px; border: 0; background: transparent; cursor: pointer;
@@ -210,6 +267,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .chip.soft { background: color-mix(in oklch, oklch(calc(var(--fill-l) + var(--dl, 0)) var(--fill-c) var(--h)) var(--soft-a), transparent); color: var(--ink); }
 .list .words { font-size: 13px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .list .n { font: 500 12px var(--f-mono); color: var(--ink-3); }
+.list .lr { color: var(--ink-3); font-size: 12px; margin-right: 4px; }
 .mchip { width: 28px; height: 6px; border-radius: 3px; background: oklch(var(--bar-l) var(--bar-c) var(--h)); }
 .list .pair { font: 13px/1.35 var(--f-mono); color: var(--ink); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .empty { font-size: 13px; color: var(--ink-3); margin: 0; }
@@ -245,7 +303,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   .gut .num { display: none; }
   .gut { padding-right: 8px; }
   .stage { padding: 14px 10px 22px 4px; }
-  .readings { grid-template-columns: 1fr 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
@@ -277,6 +334,45 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
     </div>
   </header>
 
+  <form class="finder" id="finder" role="search" autocomplete="off">
+    <div class="finder-box">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Find a song by title and artist, e.g. Lose Yourself Eminem" aria-label="Find a song" aria-controls="results" aria-expanded="false" aria-autocomplete="list" enterkeyhint="search">
+      <button class="primary" type="submit">Find lyrics</button>
+    </div>
+    <ul class="results" id="results" role="listbox" aria-label="Songs" hidden></ul>
+    <p class="finder-note" id="finderNote">Lyrics come from <a href="https://lrclib.net" target="_blank" rel="noopener">LRCLIB</a>, a free community database. You can also paste your own with Edit text.</p>
+  </form>
+
+  <section class="toolbar" aria-label="Matching">
+    <div class="tool">
+      <span class="tool-label" id="tierLabel">Rhymes</span>
+      <div class="seg" role="group" aria-labelledby="tierLabel">
+        <button type="button" data-tier="0" aria-pressed="false" title="Same vowel and same following consonants">Perfect</button>
+        <button type="button" data-tier="1" aria-pressed="false" title="Also related consonants or one extra consonant">Near</button>
+        <button type="button" data-tier="2" aria-pressed="true" title="Also same vowel alone">Assonance</button>
+      </div>
+    </div>
+    <div class="tool reach">
+      <label class="tool-label" for="reach">Reach</label>
+      <input type="range" id="reach" min="1" max="8" step="1" value="4" title="How many lines apart two syllables can be and still count as rhyming">
+      <output id="reachOut" for="reach">4 lines</output>
+    </div>
+    <label class="switch tool" for="identical" title="Wadsworth &amp; Needle count repeated words as identical rhyme; Raplyzer does not">
+      <input type="checkbox" id="identical" checked>
+      <span class="track" aria-hidden="true"></span>
+      <span>A word rhymes with itself</span>
+    </label>
+    <p class="tool-note" id="tierNote"></p>
+  </section>
+
+  <section class="readings" aria-label="Readings">
+    <div class="reading"><b id="rShare">–</b><span>syllables rhyme</span><small id="rShareSub">&nbsp;</small></div>
+    <div class="reading"><b id="rGroups">–</b><span>rhyme groups</span><small id="rGroupsSub">&nbsp;</small></div>
+    <div class="reading wide"><b id="rMulti">–</b><span>longest multisyllabic rhyme</span><small id="rMultiSub">&nbsp;</small></div>
+    <div class="reading" title="Average length of each word's longest matching vowel run (Malmi et al. 2016). The DopeLearning study measured 0.87–1.19 across 94 artists' full catalogues."><b id="rDensity">–</b><span>rhyme density</span><small>Raplyzer measure; rappers score 0.87–1.19</small></div>
+  </section>
+
   <div class="grid">
     <section class="sheet-card" id="card" aria-label="Verse">
       <div class="sheet-bar">
@@ -284,13 +380,14 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
           <button type="button" id="viewXray" aria-pressed="true">X-ray</button>
           <button type="button" id="viewEdit" aria-pressed="false">Edit text</button>
         </div>
+        <div class="song" id="song" hidden></div>
         <div class="bar-right">
-          <label class="sr" for="examples" style="position:absolute;left:-9999px">Load an example verse</label>
+          <label for="examples" style="position:absolute;left:-9999px">Load an example verse</label>
           <select class="text-btn" id="examples">
             <option value="">Examples…</option>
             <option value="grease">Grease (two-liner)</option>
             <option value="steel">Cold steel (demo verse)</option>
-            <option value="schemes">Rhyme types side by side</option>
+            <option value="schemes">Rhyme types, one per line</option>
           </select>
         </div>
       </div>
@@ -313,54 +410,17 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
         <textarea id="input" spellcheck="false" aria-label="Lyrics">A little grease always keeps the wheels a-spinnin'
 Like sitting on twenty threes to get the squealers grinnin'</textarea>
         <div class="hint">
-          <span>One bar per line. Blank lines separate verses.</span>
+          <span>One bar per line. Blank lines separate verses; lines like [Chorus] become headings.</span>
           <span><kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>Enter</kbd> to X-ray <button class="primary" id="done" type="button" style="margin-left:8px">X-ray it</button></span>
         </div>
       </div>
     </section>
 
     <aside class="rail">
-      <section class="panel" aria-labelledby="h-match">
-        <h2 id="h-match">Matching</h2>
-        <div class="ctl">
-          <div class="ctl-label"><span>What counts as a rhyme</span></div>
-          <div class="seg" role="group" aria-label="Rhyme strictness">
-            <button type="button" data-tier="0" aria-pressed="false">Perfect</button>
-            <button type="button" data-tier="1" aria-pressed="false">Near</button>
-            <button type="button" data-tier="2" aria-pressed="true">Assonance</button>
-          </div>
-          <p class="ctl-note" id="tierNote"></p>
-        </div>
-        <div class="ctl">
-          <label class="switch" for="identical">
-            <span>A word rhymes with itself</span>
-            <input type="checkbox" id="identical" checked>
-            <span class="track" aria-hidden="true"></span>
-          </label>
-          <p class="ctl-note" id="identNote"></p>
-        </div>
-        <div class="ctl">
-          <div class="ctl-label"><label for="reach">Reach</label><output id="reachOut" for="reach">4 lines</output></div>
-          <input type="range" id="reach" min="1" max="8" step="1" value="4">
-          <p class="ctl-note">How many lines apart two syllables can be and still count as rhyming.</p>
-        </div>
-      </section>
-
-      <section class="panel" aria-labelledby="h-read">
-        <h2 id="h-read">Readings</h2>
-        <div class="readings">
-          <div class="reading"><b id="rShare">–</b><span>syllables rhyme</span><small id="rShareSub">&nbsp;</small></div>
-          <div class="reading"><b id="rGroups">–</b><span>rhyme groups</span><small id="rGroupsSub">&nbsp;</small></div>
-          <div class="reading wide"><b id="rMulti">–</b><span>longest multisyllabic rhyme</span><small id="rMultiSub">&nbsp;</small></div>
-          <div class="reading wide"><b id="rDensity">–</b><span>rhyme density (Raplyzer measure)</span><small>Average length of each word's longest matching vowel run. The DopeLearning study measured 0.87–1.19 across 94 artists' full catalogues.</small></div>
-        </div>
-      </section>
-
       <section class="panel" aria-labelledby="h-groups">
-        <h2 id="h-groups">Rhyme groups <small id="groupHint">click to isolate</small></h2>
+        <h2 id="h-groups">Rhyme groups <small>click to isolate</small></h2>
         <ul class="list" id="groupList"></ul>
       </section>
-
       <section class="panel" aria-labelledby="h-multis">
         <h2 id="h-multis">Multisyllabic rhymes</h2>
         <ul class="list" id="multiList"></ul>
@@ -418,12 +478,13 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   const EXAMPLES = {
     grease: "A little grease always keeps the wheels a-spinnin'\nLike sitting on twenty threes to get the squealers grinnin'",
     steel: "Cold steel, gold wheels, roll deals in the low field\nOld feels, slow heals, I don't kneel and I won't yield\nPressure making diamonds, I was raised inside the silence\nEvery lesson was a violence, now I'm finished with the sirens",
-    schemes: "Perfect: I keep the peace, I hold the lease\nNear: I hit the time, I paid the fine, I made the line mine\nAssonance: sit in the spin of the gritty city\nMulti: wheels a-spinnin', squealers grinnin'"
+    // Each line's label takes part in a rhyme of exactly its own type, and nothing else on the line rhymes.
+    schemes: "Perfect: a direct effect\nNear: I grew a beard\nAssonance: a pal in a cab\nMulti: the night is sultry"
   };
   const TIER_NOTES = [
-    'Same vowel and same following consonants: grease / peace, spin / grin.',
-    'Also same vowel with related consonants or one extra: wheels / squealers, time / mine.',
-    'Also same vowel alone: sit / spin, sweaty / heavy. Drawn lighter.'
+    'Same vowel and same consonants after it (spin / grin).',
+    'Also related or one extra consonant (wheels / squealers).',
+    'Also the same vowel alone (sit / spin), drawn lighter.'
   ];
 
   const store = {
@@ -452,9 +513,6 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     document.querySelectorAll('[data-tier]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.tier === state.tier)));
     $('tierNote').textContent = TIER_NOTES[state.tier];
     $('identical').checked = state.identical;
-    $('identNote').textContent = state.identical
-      ? 'Repeating a word counts as a rhyme (an "identical rhyme").'
-      : 'Repeated words never link to each other.';
     $('reach').value = state.reach;
     $('reachOut').textContent = state.reach === 1 ? 'same line' : state.reach + ' lines';
   }
@@ -486,10 +544,10 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   $('viewXray').addEventListener('click', () => setView(false));
   $('done').addEventListener('click', () => setView(false));
   ta.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); setView(false); } });
-  ta.addEventListener('input', () => store.set('draft', ta.value));
+  ta.addEventListener('input', () => { store.set('draft', ta.value); if (state.song) setSong(null); });
   $('examples').addEventListener('change', e => {
     const v = EXAMPLES[e.target.value];
-    if (v) { ta.value = v; store.set('draft', v); state.pinned = null; setView(false); }
+    if (v) { ta.value = v; store.set('draft', v); setSong(null); state.pinned = null; setView(false); }
     e.target.value = '';
   });
 
@@ -507,6 +565,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     let html = '';
     let num = 0;
     for (const L of A.lines) {
+      if (L.heading) { html += `<li class="ln head">${esc(L.raw.trim().replace(/^[\[(]|[\])]$/g, ''))}</li>`; continue; }
       if (!L.raw.trim()) { html += '<li class="ln blank" aria-hidden="true"></li>'; continue; }
       num++;
       let out = '', pos = 0;
@@ -546,7 +605,9 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   function renderPlain() {
     lyric.classList.add('loading');
     let num = 0;
-    lyric.innerHTML = ta.value.split('\n').map(l => l.trim()
+    lyric.innerHTML = ta.value.split('\n').map(l => /^\s*[\[(][^\])]*[\])]\s*$/.test(l)
+      ? `<li class="ln head">${esc(l.trim().replace(/^[\[(]|[\])]$/g, ''))}</li>`
+      : l.trim()
       ? `<li class="ln"><span class="gut"><span class="num">${++num}</span></span><span class="txt">${esc(l)}</span></li>`
       : '<li class="ln blank"></li>').join('');
     lanes.innerHTML = '';
@@ -579,7 +640,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
         const pressed = state.pinned && state.pinned.kind === 'group' && state.pinned.id === g.id;
         return `<li><button type="button" data-pin-group="${g.id}" aria-pressed="${pressed}" title="Isolate this group">
           <span class="chip${soft ? ' soft' : ''}" style="${colourVars(g.color)}">/${esc(g.key)}/</span>
-          <span class="words">${esc(g.words.join(' · '))}</span>
+          <span class="words"><span class="lr">${g.firstLine === g.lastLine ? 'line ' + (g.firstLine + 1) : 'lines ' + (g.firstLine + 1) + '–' + (g.lastLine + 1)}</span> ${esc(g.words.join(' · '))}</span>
           <span class="n">${g.members.length}</span></button></li>`;
       }).join('');
     }
@@ -605,13 +666,15 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     if (!A || card.classList.contains('editing')) return;
     const base = stage.getBoundingClientRect();
     const frag = document.createDocumentFragment();
+    const byId = new Map();
+    lyric.querySelectorAll('[data-sid]').forEach(el => byId.set(+el.dataset.sid, el));
     const probe = lyric.querySelector('.syl.g');
     const half = probe ? probe.getClientRects()[0].height / 2 : 14;
     A.spans.forEach(sp => {
       if (sp.hidden) return;
       const rows = new Map();
       for (let id = sp.first; id <= sp.last; id++) {
-        const el = lyric.querySelector(`[data-sid="${id}"]`);
+        const el = byId.get(id);
         if (!el) continue;
         for (const r of el.getClientRects()) {
           const mid = (r.top + r.bottom) / 2;
@@ -740,6 +803,113 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   const relayout = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { drawLanes(); applyFocus(); }); };
   new ResizeObserver(relayout).observe(lyric);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
+
+
+  // ------------------------------------------------------------ song search (LRCLIB)
+  const qIn = $('q'), results = $('results'), note = $('finderNote');
+  const NOTE = note.innerHTML;
+  const LRCLIB = 'https://lrclib.net/api/search?q=';
+  let found = [], active = -1, ctrl = null, timer = 0, lastQuery = '';
+
+  function setSong(song) {
+    state.song = song;
+    const el = $('song');
+    if (song) {
+      el.innerHTML = `${esc(song.track)} <span>· ${esc(song.artist)}</span>`;
+      el.title = `${song.track} by ${song.artist}${song.album ? ', from ' + song.album : ''}. Lyrics from LRCLIB.`;
+      el.hidden = false;
+      store.set('song', JSON.stringify(song));
+    } else {
+      el.hidden = true; el.textContent = '';
+      store.set('song', '');
+    }
+  }
+  try { const s = JSON.parse(store.get('song') || 'null'); if (s && s.track) setSong(s); } catch (e) { /* ignore */ }
+
+  const fmtTime = sec => sec ? `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}` : '';
+  function cleanLyrics(t) {
+    return t.replace(/\r\n?/g, '\n').split('\n').map(l => l.replace(/\s+$/, '')).join('\n')
+      .replace(/\n{3,}/g, '\n\n').trim();
+  }
+  function closeResults() { results.hidden = true; qIn.setAttribute('aria-expanded', 'false'); active = -1; }
+  function showMessage(html) {
+    results.innerHTML = `<li class="msg" role="option" aria-disabled="true">${html}</li>`;
+    results.hidden = false; qIn.setAttribute('aria-expanded', 'true');
+  }
+  function showResults() {
+    if (!found.length) {
+      showMessage(`No lyrics found for “${esc(lastQuery)}”. Try adding the artist, or paste the lyrics with Edit text.`);
+      return;
+    }
+    results.innerHTML = found.map((r, i) => `<li role="option" id="opt${i}" data-i="${i}" aria-selected="${i === active}">
+      <span class="t">${esc(r.trackName)}</span><span class="d">${fmtTime(r.duration)}</span>
+      <span class="a">${esc(r.artistName)}${r.albumName && r.albumName.toLowerCase() !== r.trackName.toLowerCase() ? ' · ' + esc(r.albumName) : ''}</span></li>`).join('');
+    results.hidden = false; qIn.setAttribute('aria-expanded', 'true');
+    if (active >= 0) qIn.setAttribute('aria-activedescendant', 'opt' + active); else qIn.removeAttribute('aria-activedescendant');
+  }
+  async function search(query, explicit) {
+    query = query.trim();
+    if (query.length < 2) { closeResults(); return; }
+    if (query === lastQuery && found.length && !explicit) { showResults(); return; }
+    lastQuery = query;
+    if (ctrl) ctrl.abort();
+    ctrl = new AbortController();
+    showMessage('Searching…');
+    try {
+      const res = await fetch(LRCLIB + encodeURIComponent(query), {
+        signal: ctrl.signal,
+        headers: { 'Lrclib-Client': 'Rhyme X-ray (https://github.com/baphaelman/rhyme-xray)' }
+      });
+      if (!res.ok) throw new Error(res.status === 429 ? 'too many searches, wait a moment' : 'HTTP ' + res.status);
+      const data = await res.json();
+      const seen = new Set();
+      found = data.filter(r => !r.instrumental && r.plainLyrics && r.plainLyrics.trim().split('\n').length > 3).filter(r => {
+        const k = (r.trackName + '|' + r.artistName).toLowerCase().replace(/[^a-z0-9|]/g, '');
+        if (seen.has(k)) return false;
+        seen.add(k); return true;
+      }).slice(0, 8);
+      active = found.length ? 0 : -1;
+      showResults();
+      if (explicit && found.length === 1) pick(0);
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      showMessage(`Couldn't reach the lyrics service (${esc(err.message || String(err))}). Check your connection, or paste the lyrics with Edit text.`);
+    }
+  }
+  function pick(i) {
+    const r = found[i]; if (!r) return;
+    ta.value = cleanLyrics(r.plainLyrics);
+    store.set('draft', ta.value);
+    setSong({ track: r.trackName, artist: r.artistName, album: r.albumName || '' });
+    closeResults();
+    qIn.blur();
+    state.pinned = null;
+    setView(false);
+    card.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  qIn.addEventListener('input', () => {
+    clearTimeout(timer);
+    const v = qIn.value;
+    if (v.trim().length < 3) { closeResults(); return; }
+    timer = setTimeout(() => search(v, false), 450);
+  });
+  qIn.addEventListener('keydown', e => {
+    if (results.hidden || !found.length) { if (e.key === 'Escape') closeResults(); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); active = (active + 1) % found.length; showResults(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); active = (active - 1 + found.length) % found.length; showResults(); }
+    else if (e.key === 'Escape') { closeResults(); }
+  });
+  qIn.addEventListener('focus', () => { if (found.length && qIn.value.trim() === lastQuery) showResults(); });
+  $('finder').addEventListener('submit', e => {
+    e.preventDefault();
+    clearTimeout(timer);
+    if (!results.hidden && found.length && active >= 0 && qIn.value.trim() === lastQuery) pick(active);
+    else search(qIn.value, true);
+  });
+  results.addEventListener('mousedown', e => e.preventDefault()); // keep focus in the box
+  results.addEventListener('click', e => { const li = e.target.closest('li[data-i]'); if (li) pick(+li.dataset.i); });
+  document.addEventListener('click', e => { if (!e.target.closest('#finder')) closeResults(); });
 
   // ------------------------------------------------------------ dictionary
   async function loadDictionary() {

@@ -183,6 +183,12 @@ describe('presentation', () => {
     assert.equal(line0.length, 1);
     assert.ok(line0[0].words.startsWith('Cold steel, gold wheels, roll deals'));
   });
+  test('section labels are headings, not lyrics, and do not count toward reach', () => {
+    const A = E.analyse('[Verse 1]\nI keep the peace\n[Chorus]\nI hold the lease', { tier: PERFECT, reach: 2 });
+    assert.ok(A.lines[0].heading && A.lines[2].heading);
+    assert.equal(A.lines[0].words.length, 0);
+    assert.ok(sameGroup(A, 'peace', 'lease'));
+  });
   test('analysis is pure: same input, same output', () => {
     const a = E.analyse(SAMPLE), b = E.analyse(SAMPLE);
     assert.deepEqual(a.stats, b.stats);
