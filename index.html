@@ -295,6 +295,13 @@ input[type="range"] { accent-color: var(--accent); }
 .pop .m { font-family: var(--f-mono); }
 .pop .tag { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 12px; font-weight: 600; background: color-mix(in oklch, var(--pc, var(--ink-3)) 22%, transparent); }
 @media (prefers-reduced-motion: reduce) { .pop { animation: none; } }
+.pop.frozen { pointer-events: auto; user-select: text; -webkit-user-select: text; cursor: text; box-shadow: 0 26px 56px -14px rgb(0 0 0 / .55), 0 0 0 2px var(--pc, var(--ink-3)); }
+.pop .x { display: none; position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border: 0; border-radius: 8px; background: transparent; color: var(--ink-3); cursor: pointer; font-size: 18px; line-height: 1; }
+.pop .x:hover { background: var(--ground); color: var(--ink); }
+.pop.frozen .x { display: block; }
+.pop .hint { display: none; margin-top: 10px; font-size: 11.5px; color: var(--ink-3); }
+.pop.frozen .hint { display: block; }
+.pop.frozen .hd { padding-right: 26px; }
 
 .syl.flash, .sch.flash { animation: flash 1.1s ease-out; }
 @keyframes flash {
@@ -307,14 +314,84 @@ input[type="range"] { accent-color: var(--accent); }
 .reading.jump:disabled { cursor: default; }
 .sch.g { cursor: pointer; }
 
-/* ---------- notes ---------- */
-.notes { margin-top: 20px; }
-.notes details { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; }
-.notes summary { padding: 14px 16px; cursor: pointer; font-weight: 600; }
-.notes .body { padding: 0 16px 16px; color: var(--ink-2); max-width: 75ch; font-size: 14px; }
-.notes .body h3 { font: 600 14px var(--f-ui); color: var(--ink); margin: 16px 0 4px; }
-.notes .body p, .notes .body li { margin: 4px 0; }
-.notes a { color: var(--accent); }
+/* ---------- how it works ---------- */
+.how { margin-top: 32px; display: grid; gap: 10px; }
+.how-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
+.how-head h2 { margin: 0; font: 600 24px/1.15 var(--f-head); text-wrap: balance; }
+.how-head p { margin: 6px 0 0; color: var(--ink-2); max-width: 70ch; }
+.step { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; }
+.step summary {
+  list-style: none; cursor: pointer; display: grid; grid-template-columns: 30px auto minmax(0, 1fr) 20px; align-items: baseline;
+  gap: 4px 12px; padding: 14px 16px;
+}
+.step summary::-webkit-details-marker { display: none; }
+.step summary::after { content: ""; width: 8px; height: 8px; border-right: 2px solid var(--ink-3); border-bottom: 2px solid var(--ink-3); transform: rotate(45deg); justify-self: end; align-self: center; transition: transform .15s; }
+.step[open] summary::after { transform: rotate(225deg); }
+.step summary:hover .st { color: var(--accent); }
+.step .num { width: 26px; height: 26px; border-radius: 8px; display: inline-grid; place-items: center; align-self: center; background: var(--ground); border: 1px solid var(--rule); font: 600 13px var(--f-mono); color: var(--ink-2); }
+.step .st { font-weight: 600; font-size: 15.5px; }
+.step .sub { color: var(--ink-3); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.step .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 22px; padding: 4px 16px 18px 58px; }
+.step .cols.single { grid-template-columns: minmax(0, 1fr); }
+.explain { color: var(--ink-2); font-size: 14.5px; line-height: 1.6; max-width: 66ch; }
+.explain p { margin: 0 0 10px; }
+.explain ul { margin: 0 0 10px; padding-left: 20px; }
+.explain li { margin: 4px 0; }
+.explain b { color: var(--ink); font-weight: 600; }
+.explain a, .foot a { color: var(--accent); }
+.demo { background: var(--ground); border: 1px solid var(--rule); border-radius: 12px; padding: 14px; min-width: 0; align-self: start; }
+.demo-label { font: 600 11px/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px; display: flex; justify-content: space-between; gap: 8px; }
+.demo-label span { text-transform: none; letter-spacing: 0; font-weight: 500; }
+.demo .note { font-size: 12.5px; color: var(--ink-3); margin: 10px 0 0; }
+.demo .none { font-size: 13.5px; color: var(--ink-2); margin: 0; }
+.dtab { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.dtab td { padding: 5px 8px 5px 0; vertical-align: baseline; border-top: 1px solid var(--rule); }
+.dtab tr:first-child td { border-top: 0; }
+.dtab .m, .demo .m { font-family: var(--f-mono); }
+.dtab .why { color: var(--ink-2); }
+.dtab s { color: var(--ink-3); }
+.dtab .arrow { color: var(--ink-3); }
+.scroll-x { overflow-x: auto; }
+.sylrow { display: flex; flex-wrap: wrap; gap: 14px 18px; }
+.sylword { display: grid; gap: 6px; }
+.sylword .wl { font: 600 13px var(--f-mono); color: var(--ink); }
+.sylboxes { display: flex; gap: 4px; }
+.sb { border: 1px solid var(--rule); border-radius: 8px; padding: 6px 8px; background: var(--sheet); display: grid; gap: 2px; min-width: 52px; text-align: center; }
+.sb .l { font: 15px var(--f-mono); }
+.sb .i { font: 12.5px var(--f-mono); color: var(--ink-2); }
+.sb .r { font: 600 12.5px var(--f-mono); border-radius: 4px; padding: 0 4px; justify-self: center; }
+.sb .r.g { background: oklch(calc(var(--fill-l) + var(--dl, 0)) var(--fill-c) var(--h)); color: var(--on-fill); }
+.sb .s { font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
+.tierrow { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 8px 10px; align-items: baseline; font-size: 13.5px; }
+.tierrow + .tierrow { margin-top: 8px; }
+.tierrow .t { font-weight: 600; }
+.tierrow .t.off { color: var(--ink-3); font-weight: 500; }
+.dpairs { display: flex; flex-wrap: wrap; gap: 6px; }
+.dpair { font-family: var(--f-mono); font-size: 13px; padding: 2px 8px; border-radius: 6px; background: var(--sheet); border: 1px solid var(--rule); }
+.dpair i { font-style: normal; color: var(--ink-3); }
+.cmpline { font: 15px/2.4 var(--f-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.cmp { border-radius: 3px; padding: 2px 0; }
+.cmp.e { box-shadow: inset 0 0 0 1.5px var(--ink-2); }
+.cmp.r { box-shadow: inset 0 -2px 0 var(--ink-3); }
+.cmp.x { color: var(--ink-3); }
+.cmpkey { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--ink-2); margin-top: 8px; }
+.cmpkey i { font-style: normal; font-family: var(--f-mono); padding: 0 4px; border-radius: 3px; }
+.align { display: grid; gap: 4px; justify-content: start; font-family: var(--f-mono); font-size: 13.5px; }
+.align .c { padding: 4px 6px; border-radius: 5px; text-align: center; background: var(--sheet); border: 1px solid var(--rule); }
+.align .c.g { background: oklch(calc(var(--fill-l) + var(--dl, 0)) var(--fill-c) var(--h)); color: var(--on-fill); border-color: transparent; }
+.align .k { text-align: center; color: var(--ink-2); font-size: 12px; font-family: var(--f-ui); }
+.align .h { color: var(--ink-3); font: 11px var(--f-ui); align-self: center; padding-right: 4px; }
+.grp { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 10px; align-items: center; font-size: 13.5px; }
+.grp .words { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nums { display: grid; gap: 10px; font-size: 13.5px; }
+.nums .big { font: 600 20px var(--f-head); color: var(--ink); margin-right: 6px; }
+@media (max-width: 760px) {
+  .step .cols { grid-template-columns: minmax(0, 1fr); padding-left: 16px; }
+  .step summary { grid-template-columns: 30px minmax(0, 1fr) 20px; }
+  .step .sub { grid-column: 2; grid-row: 2; white-space: normal; }
+  .step summary::after { grid-column: 3; grid-row: 1; }
+}
+
 .foot { margin-top: 14px; font-size: 12.5px; color: var(--ink-3); }
 
 @media (max-width: 600px) {
@@ -447,35 +524,126 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     </aside>
   </div>
 
-  <section class="notes">
-    <details>
-      <summary>How Rhyme X-ray decides what rhymes</summary>
-      <div class="body">
-        <h3>Sounds, not spelling</h3>
-        <p>Each word is looked up in the CMU Pronouncing Dictionary. Lyric spellings are normalised first ("spinnin'" is read as "spinning" with the g dropped, "tha" as "the", "'em" as /əm/, numbers as words). Anything still unknown is guessed from its spelling and gets a dotted underline. Sounds are shown in IPA.</p>
-        <h3>The rhyme part of a syllable</h3>
-        <p>A syllable's rhyme is its vowel plus every consonant up to the next vowel, so "squeal-ers" can rhyme with "wheels". The tiers follow Pat Pattison's songwriting taxonomy:</p>
-        <ul>
-          <li><b>Perfect</b>: same vowel and same consonants (/is/ grease, peace).</li>
-          <li><b>Near</b>: same vowel; consonants from the same family (stops, fricatives, nasals; voicing ignored) or one extra consonant (wheel / wheels, grease / threes).</li>
-          <li><b>Assonance</b>: same vowel only (sit / spin). Rap analysts treat this as the backbone of modern rhyme. It is drawn lighter.</li>
-        </ul>
-        <h3>Who gets coloured</h3>
-        <p>Stressed syllables of content words, the last syllable of each line, and full unstressed endings like the -y in "sweaty". Function words ("the", "a", "on") are coloured only as part of a longer multisyllabic run.</p>
-        <h3>Multisyllabic rhymes</h3>
-        <p>Two runs of syllables match in order, starting on a stressed syllable. Stressed positions must match at the chosen tier. Unstressed schwas may stand in for each other. One unstressed syllable in the middle may break the pattern, because performers swallow those. Each run is underlined in one colour so it reads as a unit.</p>
-        <h3>Where sources disagree</h3>
-        <p>Rap analysts agree that the vowel carries the rhyme. Malmi et al.'s Raplyzer measures nothing else. They disagree on consonants and on repetition. Hirjee &amp; Brown and the WSJ's Hamilton analysis score the consonants after the vowel. Wadsworth &amp; Needle count an identical word as an "identical rhyme"; Raplyzer explicitly scores it as zero. That is why "a word rhymes with itself" is a switch.</p>
-        <h3>Sources</h3>
-        <ul>
-          <li>Malmi et al., <a href="https://arxiv.org/abs/1505.04771" target="_blank" rel="noopener">DopeLearning</a> (KDD 2016), and the <a href="https://github.com/ekQ/raplysaattori" target="_blank" rel="noopener">Raplyzer source</a>.</li>
-          <li>Hirjee &amp; Brown, "Using Automated Rhyme Detection to Characterize Rhyming Style in Rap Music", Empirical Musicology Review (2010).</li>
-          <li>Wadsworth &amp; Needle, <a href="https://theory.esm.rochester.edu/integral/?p=6643" target="_blank" rel="noopener">Rhyme, Metrical Tension, and Formal Ambiguity in Kendrick Lamar's Flow</a>, Intégral.</li>
-          <li>Pat Pattison, <i>Writing Better Lyrics</i> (rhyme types: perfect, family, additive, assonance).</li>
-        </ul>
+  <section class="how" aria-labelledby="how-h">
+    <div class="how-head">
+      <div>
+        <h2 id="how-h">How Rhyme X-ray works</h2>
+        <p>Eight steps turn the verse into colours. Open a step to read the rule on the left and see, on the right, what it did to the verse you are looking at.</p>
+      </div>
+      <button type="button" class="text-btn" id="howAll">Open all steps</button>
+    </div>
+
+    <details class="step">
+      <summary><span class="num">1</span><span class="st">Sounds, not spelling</span><span class="sub">every word becomes sounds, shown in IPA</span></summary>
+      <div class="cols">
+        <div class="explain">
+          <p>Spelling lies about rhyme: <i>through</i>, <i>though</i> and <i>tough</i> share letters and no sounds. So each word is looked up in the CMU Pronouncing Dictionary (135,000 words).</p>
+          <p>Lyric spellings are normalised first. "spinnin'" is read as "spinning" with the g dropped, "tha" as "the", "'em" as /əm/, "2020" as "twenty twenty". Plurals, -ed, -ing, -er and -y forms are built from their base word.</p>
+          <p>Anything still unknown is guessed from its spelling with a few dozen rules and gets a dotted underline, so you can see where the tool is unsure.</p>
+        </div>
+        <div class="demo" id="demo-sounds"></div>
       </div>
     </details>
-    <p class="foot">Pronunciations from the CMU Pronouncing Dictionary. Letter-to-syllable mapping is approximate. Everything runs in your browser.</p>
+
+    <details class="step">
+      <summary><span class="num">2</span><span class="st">Choosing a reading</span><span class="sub">when a word has more than one pronunciation</span></summary>
+      <div class="cols">
+        <div class="explain">
+          <p>8,444 dictionary words can be said more than one way: REcord and reCORD, a /laɪv/ show and to /lɪv/, "read" now and "read" yesterday. The dictionary lists them in no reliable order, so the first entry can't be trusted.</p>
+          <p><b>Grammar first.</b> Words whose stress moves take the verb stress after "to", "I", "will" or "don't", or before an object ("record it"). After "a", "the", "so" or "is" they take the noun/adjective stress. With no clue they take the noun/adjective stress, the more common one. A small table does the same for vowel changes: live, lead, wind, close, use.</p>
+          <p><b>Then rhyme.</b> If another reading makes a perfect or near rhyme within reach and the grammatical one doesn't, it wins. That's how rappers bend words, and the only way to tell present "read" from past "read". A clear grammar clue can only be overruled by a perfect rhyme or a line-ending rhyme. Small words like "a" and "the" never switch.</p>
+        </div>
+        <div class="demo" id="demo-reading"></div>
+      </div>
+    </details>
+
+    <details class="step">
+      <summary><span class="num">3</span><span class="st">Syllables and rhyme parts</span><span class="sub">what part of a syllable carries the rhyme</span></summary>
+      <div class="cols">
+        <div class="explain">
+          <p>Each word's sounds are split into syllables, one vowel each. A syllable's <b>rhyme part</b> is its vowel plus every consonant up to the next vowel. A consonant between two vowels counts for both syllables, which is how "squeal-ers" can rhyme with "wheels".</p>
+          <p>Stress matters too. The dictionary marks each vowel as stressed, lightly stressed or unstressed. Unstressed /ə/, /ɪ/ and /ʊ/ all sound like a schwa, so they count as one sound.</p>
+          <p>Mapping sounds back onto letters is approximate. It's how the colours land on "spin" and "nin'" rather than on the whole word.</p>
+        </div>
+        <div class="demo" id="demo-syllables"></div>
+      </div>
+    </details>
+
+    <details class="step">
+      <summary><span class="num">4</span><span class="st">How close is close enough</span><span class="sub">perfect, near and assonance</span></summary>
+      <div class="cols">
+        <div class="explain">
+          <p>Two rhyme parts are compared using Pat Pattison's songwriting categories:</p>
+          <ul>
+            <li><b>Perfect</b>: same vowel and the same consonants after it (grease / peace).</li>
+            <li><b>Near</b>: same vowel; consonants from the same family (stops, fricatives, nasals, ignoring voicing) or one extra consonant (time / line, wheels / squealers).</li>
+            <li><b>Assonance</b>: the same vowel alone (sit / spin). Rap analysts treat this as the backbone of modern rhyme, so it counts, but it's drawn lighter.</li>
+          </ul>
+          <p>The <b>Rhymes</b> switch above the verse sets the loosest category allowed.</p>
+        </div>
+        <div class="demo" id="demo-tiers"></div>
+      </div>
+    </details>
+
+    <details class="step">
+      <summary><span class="num">5</span><span class="st">Who gets compared</span><span class="sub">stress decides what can rhyme on its own</span></summary>
+      <div class="cols">
+        <div class="explain">
+          <p>Only syllables a listener hears as beats are compared on their own: stressed syllables of content words, the last syllable of every line, and full unstressed endings like the -y of "sweaty".</p>
+          <p>Function words ("the", "a", "on") and weak syllables can still be coloured, but only as part of a longer multisyllabic rhyme. Without this rule every "the" would rhyme with every "a".</p>
+          <p>Two syllables can link only if they're within <b>Reach</b> lines of each other (four by default). Lines like [Chorus] are headings and don't count.</p>
+        </div>
+        <div class="demo" id="demo-compare"></div>
+      </div>
+    </details>
+
+    <details class="step">
+      <summary><span class="num">6</span><span class="st">Multisyllabic rhymes</span><span class="sub">runs of syllables that match in order</span></summary>
+      <div class="cols">
+        <div class="explain">
+          <p>A multisyllabic rhyme is two runs of syllables whose rhyme parts match position by position, across word boundaries. Malmi et al. measure rhyme the same way, as the longest matching vowel sequence.</p>
+          <p>A run starts on a stressed syllable on both sides. Stressed positions must match at the chosen category, and two unstressed schwas may stand in for each other. One weak syllable in the middle may break the pattern, because performers swallow those. A run needs at least two positions that carry the rhyme, and repeating the same words doesn't count.</p>
+          <p>Each run is underlined in one colour so it reads as a unit. Back-to-back repeats of a pattern on one line merge into a single underline.</p>
+        </div>
+        <div class="demo" id="demo-multi"></div>
+      </div>
+    </details>
+
+    <details class="step">
+      <summary><span class="num">7</span><span class="st">Groups and colours</span><span class="sub">every link joins a group; groups get colours</span></summary>
+      <div class="cols">
+        <div class="explain">
+          <p>Every link, single or inside a multi, joins two syllables into the same rhyme group. Groups chain: if A rhymes with B and B with C, all three share a colour.</p>
+          <p>A group is named by its most common rhyme part in IPA. When its members disagree, it's named by the vowel alone.</p>
+          <p>Colours come from a 14-colour palette built for both light and dark themes. Groups within reach of each other always get different colours. A letter in the margin marks each line's end rhyme, A, B and so on, with <b>x</b> for a line ending that doesn't rhyme.</p>
+        </div>
+        <div class="demo" id="demo-groups"></div>
+      </div>
+    </details>
+
+    <details class="step">
+      <summary><span class="num">8</span><span class="st">The readings</span><span class="sub">where the numbers above the verse come from</span></summary>
+      <div class="cols">
+        <div class="explain">
+          <p><b>Syllables that rhyme</b>: coloured syllables divided by all syllables.</p>
+          <p><b>Longest multisyllabic rhyme</b>: the longest run from step 6.</p>
+          <p><b>Rhyme density</b> is Raplyzer's measure (Malmi et al., 2016). For every word, find the longest vowel sequence ending at it that also ends at one of the previous ten words. Consonants are ignored, a word repeating itself scores 0, and so does a single-vowel match. Average over all words. Across 94 artists' full catalogues the study measured 0.87 (The Lonely Island) to 1.19 (Inspectah Deck). A short excerpt can score far outside that range.</p>
+        </div>
+        <div class="demo" id="demo-numbers"></div>
+      </div>
+    </details>
+
+    <details class="step plain">
+      <summary><span class="num">?</span><span class="st">Where the sources agree, and where they don't</span><span class="sub">why some rules are switches</span></summary>
+      <div class="cols single">
+        <div class="explain">
+          <p>Published ways of coding rap rhymes agree that <b>the stressed vowel carries the rhyme</b>. Raplyzer measures nothing else, and the Vox / Martin Connor breakdowns and Wadsworth &amp; Needle treat assonance as rhyme. Hirjee &amp; Brown and the WSJ's <i>Hamilton</i> analysis score vowels first. They also agree that multisyllabic rhymes are matching vowel sequences shown as one unit, and that stress decides which syllables anchor a rhyme.</p>
+          <p>They <b>disagree on consonants</b>: Raplyzer ignores them, Hirjee &amp; Brown and the WSJ score them by similarity, and Wadsworth &amp; Needle's main class requires the final consonant. That's why there are three categories. They <b>disagree on repetition</b>: Wadsworth &amp; Needle count an "identical rhyme", while Raplyzer's code scores a repeated word as zero. That's why "A word rhymes with itself" is a switch.</p>
+          <p>Sources: Malmi et al., <a href="https://arxiv.org/abs/1505.04771" target="_blank" rel="noopener">DopeLearning</a> (KDD 2016) and the <a href="https://github.com/ekQ/raplysaattori" target="_blank" rel="noopener">Raplyzer source</a>; Hirjee &amp; Brown, "Using Automated Rhyme Detection to Characterize Rhyming Style in Rap Music", <i>Empirical Musicology Review</i> (2010); Wadsworth &amp; Needle, <a href="https://theory.esm.rochester.edu/integral/?p=6643" target="_blank" rel="noopener">Rhyme, Metrical Tension, and Formal Ambiguity in Kendrick Lamar's Flow</a>, <i>Intégral</i>; Pat Pattison, <i>Writing Better Lyrics</i>.</p>
+        </div>
+      </div>
+    </details>
+    <p class="foot">Pronunciations from the CMU Pronouncing Dictionary. Everything runs in your browser. <a href="https://github.com/baphaelman/rhyme-xray" target="_blank" rel="noopener">Source on GitHub</a>.</p>
   </section>
 </div>
 
@@ -617,6 +785,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
 
     renderReadings(A);
     renderLists(A);
+    renderHow(A);
     drawLanes();
     applyFocus();
   }
@@ -765,6 +934,155 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     applyFocus();
   }
 
+
+  // ------------------------------------------------------------ "How it works": live demos
+  const DEMO = '<div class="demo-label">From your verse</div>';
+  const sylText = (A, s) => A.lines[s.lineIndex].raw.slice(s.cs, s.ce);
+  const wordName = W => W.text.replace(/^[^A-Za-z0-9']+|[^A-Za-z0-9']+$/g, '');
+  const verseWords = A => A.lines.flatMap(L => L.words).filter(W => W.syls && W.syls.length);
+
+  function demoSounds(A) {
+    const ws = verseWords(A);
+    if (!ws.length) return DEMO + '<p class="none">Paste a verse to see its words turned into sounds.</p>';
+    const rank = W => (W.src === 'norm' ? 0 : W.src === 'guess' ? 1 : W.syls.length > 1 ? 2 : 3);
+    const seen = new Set(), pick = [];
+    ws.slice().sort((a, b) => rank(a) - rank(b)).forEach(W => { if (!seen.has(W.key) && pick.length < 7) { seen.add(W.key); pick.push(W); } });
+    pick.sort((a, b) => ws.indexOf(a) - ws.indexOf(b));
+    const how = W => W.src === 'dict' ? 'dictionary'
+      : W.src === 'norm' ? (W.as ? `read as “${esc(W.as)}”` : 'lyric spelling, built from its base word')
+      : 'guessed from spelling';
+    return DEMO + '<div class="scroll-x"><table class="dtab">' + pick.map(W =>
+      `<tr><td class="m">${esc(wordName(W))}</td><td class="arrow">→</td><td class="m">/${esc(W.ipa)}/</td><td class="why">${how(W)}</td></tr>`).join('') + '</table></div>';
+  }
+
+  function readingRows(A) {
+    const ws = verseWords(A).filter(W => W.altIPA && W.altIPA.length);
+    const interesting = W => W.reading && W.reading !== "the dictionary's first reading";
+    const seen = new Set();
+    return ws.sort((a, b) => interesting(b) - interesting(a)).filter(W => {
+      const k = W.key + W.ipa; if (seen.has(k)) return false; seen.add(k); return true;
+    }).slice(0, 6);
+  }
+  function demoReading(A) {
+    let rows = readingRows(A), label = DEMO, note = '';
+    if (!rows.some(W => W.reading !== "the dictionary's first reading")) {
+      const B = E.analyse('I want to record a record\nI read it every week, the answers that I seek', { reach: state.reach });
+      rows = readingRows(B).filter(W => /record|read/.test(W.key));
+      label = '<div class="demo-label">Example <span>no word in your verse needed a choice</span></div>';
+      note = '<p class="note">“I want to record a record / I read it every week, the answers that I seek”</p>';
+    }
+    if (!rows.length) return DEMO + '<p class="none">No word here has more than one pronunciation.</p>';
+    return label + '<div class="scroll-x"><table class="dtab">' + rows.map(W =>
+      `<tr><td class="m">${esc(wordName(W))}</td><td class="m">/${esc(W.ipa)}/</td><td class="why">${esc(W.reading || '')}</td><td class="m"><s>/${W.altIPA.map(esc).join('/</s> <s>/')}/</s></td></tr>`).join('') + '</table></div>' + note;
+  }
+
+  function demoSyllables(A) {
+    const ws = verseWords(A).filter(W => W.syls.length > 1);
+    if (!ws.length) return DEMO + '<p class="none">No word here has more than one syllable.</p>';
+    const run = A.longestRun;
+    const inRun = new Set(run ? run.a.concat(run.b).map(s => s.word) : []);
+    const seen = new Set(), pick = [];
+    ws.slice().sort((a, b) => (inRun.has(b) - inRun.has(a)) || (b.syls.length - a.syls.length)).forEach(W => {
+      if (!seen.has(W.key) && pick.length < 3) { seen.add(W.key); pick.push(W); }
+    });
+    const stressName = s => (s.stress === 1 ? 'stressed' : s.stress === 2 ? 'light' : 'weak');
+    return DEMO + '<div class="sylrow">' + pick.map(W => {
+      const boxes = W.syls.map(s => {
+        const g = s.group != null ? A.groups[s.group] : null;
+        return `<div class="sb"><span class="l">${esc(sylText(A, s))}</span><span class="i">/${esc(s.ipa)}/</span>` +
+          `<span class="r${g ? ' g' : ''}" style="${g ? colourVars(g.color) : ''}" title="rhyme part">${esc(s.rhyme)}</span><span class="s">${stressName(s)}</span></div>`;
+      }).join('');
+      return `<div class="sylword"><span class="wl">${esc(wordName(W))}</span><div class="sylboxes">${boxes}</div></div>`;
+    }).join('') + '</div><p class="note">Bottom pill: the rhyme part, coloured if it rhymes with something.</p>';
+  }
+
+  function demoTiers(A) {
+    const pairs = [[], [], []], seen = new Set();
+    A.syllables.forEach(s => {
+      if (s.group == null || s.partner == null || s.tier > 2) return;
+      const p = A.syllables[s.partner];
+      const key = Math.min(s.id, p.id) + ':' + Math.max(s.id, p.id);
+      if (seen.has(key) || s.word === p.word) return;
+      seen.add(key);
+      if (pairs[s.tier].length < 4) pairs[s.tier].push([s, p]);
+    });
+    const names = ['Perfect', 'Near', 'Assonance'];
+    return DEMO + names.map((n, t) => {
+      const on = t <= state.tier;
+      const body = !on ? `<span class="why">switched off; choose ${n} above to include it</span>`
+        : pairs[t].length ? '<div class="dpairs">' + pairs[t].map(([a, b]) =>
+          `<span class="dpair">${esc(sylText(A, a))} <i>/${esc(a.rhyme)}/</i> ↔ ${esc(sylText(A, b))} <i>/${esc(b.rhyme)}/</i></span>`).join('') + '</div>'
+        : '<span class="why">none in this verse</span>';
+      return `<div class="tierrow"><span class="t${on ? '' : ' off'}">${n}</span>${body}</div>`;
+    }).join('');
+  }
+
+  function demoCompare(A) {
+    const lines = A.lines.filter(L => L.syls.length).slice(0, 2);
+    if (!lines.length) return DEMO + '<p class="none">Paste a verse to see which syllables are compared.</p>';
+    const kind = s => (s.eligible ? 'e' : s.group != null ? 'r' : 'x');
+    let html = '';
+    lines.forEach(L => {
+      let out = '', pos = 0;
+      L.syls.forEach(s => { out += esc(L.raw.slice(pos, s.cs)) + `<span class="cmp ${kind(s)}">${esc(L.raw.slice(s.cs, s.ce))}</span>`; pos = s.ce; });
+      html += `<div class="cmpline">${out}${esc(L.raw.slice(pos))}</div>`;
+    });
+    const n = { e: 0, r: 0, x: 0 };
+    A.syllables.forEach(s => n[kind(s)]++);
+    return DEMO + html + `<div class="cmpkey"><span><i class="cmp e">box</i> compared on its own: ${n.e}</span><span><i class="cmp r">line</i> only inside a multi: ${n.r}</span><span><i class="cmp x">grey</i> not compared: ${n.x}</span></div>`;
+  }
+
+  function demoMulti(A) {
+    const r = A.longestRun;
+    if (!r) return DEMO + '<p class="none">No multisyllabic rhyme in this verse at this setting.</p>';
+    const sym = t => (t === null ? ['·', 'skipped'] : t === 0 ? ['=', 'perfect'] : t === 1 ? ['≈', 'near'] : t === 2 ? ['~', 'vowel'] : ['ə', 'schwa']);
+    const cell = s => { const g = s.group != null ? A.groups[s.group] : null; return `<span class="c${g ? ' g' : ''}" style="${g ? colourVars(g.color) : ''}">${esc(sylText(A, s))}</span>`; };
+    const cols = `grid-template-columns: auto repeat(${r.len}, auto)`;
+    const lineNo = s => s.line + 1;
+    return DEMO + `<div class="scroll-x"><div class="align" style="${cols}">` +
+      `<span class="h">line ${lineNo(r.a[0])}</span>` + r.a.map(cell).join('') +
+      `<span class="h">line ${lineNo(r.b[0])}</span>` + r.b.map(cell).join('') +
+      `<span class="h"></span>` + r.tiers.map(t => `<span class="k" title="${sym(t)[1]}">${sym(t)[0]}<br>${sym(t)[1]}</span>`).join('') +
+      '</div></div>' + `<p class="note">The longest run: ${r.len} syllables, “${esc(A.stats.longest.a)}” ↔ “${esc(A.stats.longest.b)}”.</p>`;
+  }
+
+  function demoGroups(A) {
+    if (!A.groups.length) return DEMO + '<p class="none">No rhyme groups at this setting.</p>';
+    const top = A.groups.slice().sort((a, b) => b.members.length - a.members.length).slice(0, 5);
+    return DEMO + '<div class="grp">' + top.map(g =>
+      `<span class="chip${g.tier >= E.TIERS.ASSONANCE ? ' soft' : ''}" style="${colourVars(g.color)}">/${esc(g.key)}/</span><span class="words">${g.members.length} syllables: ${esc(g.words.join(' · '))}</span>`).join('') + '</div>' +
+      `<p class="note">${A.groups.length} group${A.groups.length === 1 ? '' : 's'} in all; end-rhyme scheme ${esc(A.lines.filter(l => l.scheme).map(l => l.scheme).join('').slice(0, 24))}${A.lines.filter(l => l.scheme).length > 24 ? '…' : ''}.</p>`;
+  }
+
+  function demoNumbers(A) {
+    const st = A.stats;
+    if (!st.syllables) return DEMO + '<p class="none">Paste a verse to see its numbers.</p>';
+    const top = (st.densityTop || []).filter(t => t.word.syls.length > 1 || t.with.syls.length > 1).slice(0, 3).map(t => `<span class="dpair">${esc(wordName(t.word))} <i>matches</i> ${esc(wordName(t.with))} <i>over ${t.len} vowels</i></span>`).join('');
+    return DEMO + `<div class="nums">
+      <div><span class="big">${Math.round(100 * st.share)}%</span>${st.rhyming} coloured ÷ ${st.syllables} syllables</div>
+      <div><span class="big">${st.density.toFixed(2)}</span>average best vowel-run match over ${st.densityWords} words</div>
+      ${top ? `<div><div class="why" style="margin-bottom:6px">Longest vowel-run matches:</div><div class="dpairs">${top}</div></div>` : ''}
+    </div>`;
+  }
+
+  function renderHow(A) {
+    const set = (id, html) => { const el = $(id); if (el) el.innerHTML = html; };
+    set('demo-sounds', demoSounds(A));
+    set('demo-reading', demoReading(A));
+    set('demo-syllables', demoSyllables(A));
+    set('demo-tiers', demoTiers(A));
+    set('demo-compare', demoCompare(A));
+    set('demo-multi', demoMulti(A));
+    set('demo-groups', demoGroups(A));
+    set('demo-numbers', demoNumbers(A));
+  }
+  $('howAll').addEventListener('click', () => {
+    const steps = [...document.querySelectorAll('.how details')];
+    const open = !steps.every(d => d.open);
+    steps.forEach(d => { d.open = open; });
+    $('howAll').textContent = open ? 'Close all steps' : 'Open all steps';
+  });
+
   // ------------------------------------------------------------ jumping to things out of view
   const smooth = () => matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   const sylEl = id => lyric.querySelector(`[data-sid="${id}"]`);
@@ -820,7 +1138,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   // ------------------------------------------------------------ popover
   const TIER_WORDS = ['perfect rhyme', 'near rhyme', 'assonance', 'schwa match'];
   const SRC = { dict: 'CMU dictionary', norm: 'normalised spelling', guess: 'guessed from spelling' };
-  function showPop(el) {
+  function showPop(el, frozen) {
     const A = state.A; if (!A) return;
     const s = A.syllables[+el.dataset.sid]; if (!s) return;
     const W = s.word;
@@ -841,41 +1159,72 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     if (W.altIPA && W.altIPA.length) rows += `<dt>Reading</dt><dd>${esc(W.reading || '')}; also <span class="m">/${W.altIPA.map(esc).join('/, /')}/</span></dd>`;
     pop.className = 'pop' + (g ? ' g' : '');
     pop.setAttribute('style', g ? colourVars(g.color) : '');
-    pop.innerHTML = `<div class="hd"><span class="w">${esc(W.text)}</span><span class="ipa">/${esc(W.ipa || '')}/</span></div><dl>${rows}</dl>`;
+    pop.innerHTML = `<button type="button" class="x" aria-label="Close">×</button><div class="hd"><span class="w">${esc(W.text)}</span><span class="ipa">/${esc(W.ipa || '')}/</span></div><dl>${rows}</dl><div class="hint">Pinned. Select any text to copy it. Esc or click elsewhere to close.</div>`;
     pop.hidden = false;
-    // Place the card above the hovered line (or below when there is no room), never over it.
+    if (frozen) pop.classList.add('frozen');
+    placePop(el, frozen);
+  }
+  // Place the card above the syllable's line (or below when there is no room), never over it.
+  // A pinned card is positioned in page coordinates so it scrolls with the verse.
+  function placePop(el, frozen) {
     const r = el.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
     const cx = r.left + r.width / 2;
     const left = Math.min(Math.max(12, cx - pw / 2), window.innerWidth - pw - 12);
     let top = r.top - ph - 14, above = true;
     if (top < 12) { top = r.bottom + 14; above = false; }
+    pop.classList.remove('above', 'below');
     pop.classList.add(above ? 'above' : 'below');
-    pop.style.left = left + 'px';
-    pop.style.top = top + 'px';
+    pop.style.position = frozen ? 'absolute' : 'fixed';
+    pop.style.left = (left + (frozen ? window.scrollX : 0)) + 'px';
+    pop.style.top = (top + (frozen ? window.scrollY : 0)) + 'px';
     pop.style.setProperty('--ax', Math.min(Math.max(16, cx - left), pw - 16) + 'px');
     pop.style.setProperty('--dy', above ? '4px' : '-4px');
   }
-  function hidePop() { pop.hidden = true; }
+  function hidePop() { pop.hidden = true; state.frozen = null; }
+  function freeze(el) {
+    state.frozen = +el.dataset.sid;
+    hoverSid = null;
+    showPop(el, true);
+  }
 
   lyric.addEventListener('mouseover', e => {
+    if (state.frozen != null) return; // a pinned card stays put
     const el = e.target.closest('.syl'); if (!el || !state.A) return;
     hoverSid = +el.dataset.sid; applyFocus(); showPop(el);
   });
-  lyric.addEventListener('mouseleave', () => { hoverSid = null; applyFocus(); hidePop(); });
+  lyric.addEventListener('mouseleave', () => { if (state.frozen != null) return; hoverSid = null; applyFocus(); hidePop(); });
+  // Clicking a syllable pins its card (so its text can be selected) and isolates its group.
+  // Clicking it again, pressing Esc, or clicking elsewhere lets go.
   lyric.addEventListener('click', e => {
-    const el = e.target.closest('.syl.g');
+    const el = e.target.closest('.syl');
     if (!el || !state.A) return;
-    const gid = +el.dataset.g;
-    state.pinned = state.pinned && state.pinned.kind === 'group' && state.pinned.id === gid ? null : { kind: 'group', id: gid, step: 0 };
-    if (matchMedia('(hover: none)').matches) { hoverSid = null; }
-    showPop(el);
+    const sid = +el.dataset.sid;
+    if (state.frozen === sid) { hidePop(); clearPin(); return; }
+    const gid = el.classList.contains('g') ? +el.dataset.g : null;
+    state.pinned = gid == null ? null : { kind: 'group', id: gid, step: 0 };
+    freeze(el);
     applyFocus();
   });
-  stage.addEventListener('click', e => { if (!e.target.closest('.syl.g') && !e.target.closest('.sch.g')) { hidePop(); clearPin(); } });
-  window.addEventListener('scroll', () => { if (!pop.hidden) { hoverSid = null; hidePop(); applyFocus(); } }, { passive: true });
+  let downInPop = false;
+  pop.addEventListener('mousedown', () => { downInPop = true; });
+  pop.addEventListener('click', e => { if (e.target.closest('.x')) { hidePop(); clearPin(); } });
+  document.addEventListener('click', e => {
+    if (downInPop) { downInPop = false; return; } // a text selection that ended outside the card
+    if (state.frozen == null || e.target.closest('#pop') || e.target.closest('.syl')) return;
+    hidePop(); clearPin();
+  });
+  stage.addEventListener('click', e => { if (!e.target.closest('.syl') && !e.target.closest('.sch.g')) { hidePop(); clearPin(); } });
+  window.addEventListener('scroll', () => { if (!pop.hidden && state.frozen == null) { hoverSid = null; hidePop(); applyFocus(); } }, { passive: true });
 
   let raf = 0;
-  const relayout = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { drawLanes(); applyFocus(); }); };
+  const relayout = () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      drawLanes(); applyFocus();
+      if (state.frozen != null) { const el = sylEl(state.frozen); if (el) placePop(el, true); else hidePop(); }
+    });
+  };
+  window.addEventListener('resize', relayout);
   new ResizeObserver(relayout).observe(lyric);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
 

@@ -29,7 +29,14 @@ every word is guessed from its spelling instead and results get rougher.
 - **Edit text** to paste your own verse, then **X-ray it** (or press Ctrl/⌘+Enter).
   Lines such as `[Chorus]` become section headings and are not analysed.
 - Hover or tap a syllable. A card shows the word and syllable in IPA, its rhyme part, what
-  it rhymes with (and on which line), the match type, and where the pronunciation came from.
+  it rhymes with (and on which line), the match type, where the pronunciation came from,
+  and which reading was chosen when a word has several.
+- Click a syllable to pin its card, then select any of its text to copy. Esc, the × or a
+  click elsewhere closes it.
+- **How Rhyme X-ray works**, below the verse, explains the eight steps one dropdown at a
+  time. Each step shows, beside the rule, what it did to the verse on screen: the IPA
+  of its words, the syllables and rhyme parts, the pairs at each match type, and the
+  longest multi aligned syllable by syllable.
 - Click a rhyme group, a multisyllabic rhyme, an end-rhyme letter in the margin or the
   longest-rhyme reading to isolate it and scroll to it. Click again to step to the next
   occurrence. Press Esc to clear.

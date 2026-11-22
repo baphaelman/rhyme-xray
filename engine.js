@@ -201,6 +201,10 @@
     "he'll she'll i'd you'd we'd they'd please").split(' '));
   const NOUN_BEFORE = new Set(("a an the my your his her its our their this these those every no some any " +
     "of in on at for from by so very too more most is was are be been it's that's he's she's").split(' '));
+  // Words whose readings differ in meaning or tense, so rhyme may choose between them.
+  // Other alternates in the dictionary are accents (get / "git", want / "wont") and stay put.
+  const HETERONYMS = new Set(('read again against either neither tear wound bass dove bow row sow minute ' +
+    'wind live lead close use excuse abuse house been route envelope').split(' '));
   const OBJECT_AFTER = new Set('the a an my your his her our their it me him them us'.split(' '));
 
   /** "verb" | "noun" | null, from the words either side (not across punctuation). */
@@ -439,6 +443,7 @@
         W.choice = 0;
         W.reading = null;
         W.cued = false;
+        W.ambiguous = false;
         if (W.cands.length > 1) {
           const prev = L.words[i - 1], next = L.words[i + 1];
           const cue = grammarCue(prev && prev.key ? prev : prev && { key: prev.text.toLowerCase(), text: prev.text },
@@ -446,11 +451,13 @@
             prev ? L.raw.slice(prev.e, W.s) : '', next ? L.raw.slice(W.e, next.s) : '');
           const stressAt = W.candSyls.map(sy => sy.findIndex(x => x.stress === 1));
           const forms = POS_FORMS[W.key];
+          const stressShift = new Set(stressAt.filter(x => x >= 0)).size > 1;
+          W.ambiguous = !!forms || stressShift || HETERONYMS.has(W.key);
           if (forms && cue) {
             const re = cue.cue === 'verb' ? forms.verb : forms.other;
             const k = W.cands.findIndex(ph => re.test(ph));
             if (k >= 0) { W.choice = k; W.cued = true; W.reading = `${cue.cue === 'verb' ? 'verb' : 'noun/adjective'} reading, ${cue.side} “${cue.word}”`; }
-          } else if (new Set(stressAt.filter(x => x >= 0)).size > 1) {
+          } else if (stressShift) {
             const order = stressAt.map((x, k) => [x, k]).filter(([x]) => x >= 0);
             const fore = order.reduce((m, c) => (c[0] < m[0] ? c : m))[1];
             const back = order.reduce((m, c) => (c[0] > m[0] ? c : m))[1];
@@ -481,7 +488,7 @@
       });
     });
     words.forEach(W => {
-      if (W.cands.length < 2 || W.line < 0) return;
+      if (!W.ambiguous || W.line < 0) return;
       const scored = W.candSyls.map(sy => {
         let total = 0, best = null;
         sy.forEach((s, k) => {
@@ -547,7 +554,7 @@
           all.push(s); L.syls.push(s); W.syls.push(s);
         });
         W.ipa = wordIPA(W.syls);
-        W.altIPA = W.candSyls.filter((_, i) => i !== W.choice).map(wordIPA);
+        W.altIPA = W.ambiguous ? W.candSyls.filter((_, i) => i !== W.choice).map(wordIPA) : [];
       }
     }
     const body = lines.filter(L => L.n >= 0 && L.syls.length);
@@ -761,8 +768,9 @@
     // 7. statistics
     const rhyming = all.filter(s => groupOf.has(s.id)).length;
     const longest = runs.reduce((m, r) => (!m || r.len > m.len ? r : m), null);
+    const density = rhymeDensityDetail(lines);
     return {
-      lines, syllables: all, groups, multis, spans: kept, runs,
+      lines, syllables: all, groups, multis, spans: kept, runs, longestRun: longest,
       options: opt,
       stats: {
         syllables: all.length,
@@ -770,7 +778,9 @@
         share: all.length ? rhyming / all.length : 0,
         groups: groups.length,
         longest: longest ? { len: longest.len, a: wordsOf(lines, longest.a), b: wordsOf(lines, longest.b), aId: longest.a[0].id, bId: longest.b[0].id } : null,
-        density: rhymeDensity(lines),
+        density: density.value,
+        densityWords: density.words,
+        densityTop: density.top,
         guessed: lines.reduce((n, L) => n + L.words.filter(w => w.src === 'guess').length, 0)
       }
     };
@@ -793,13 +803,17 @@
    * of the previous `lookback` words; identical words do not count, and 1-vowel matches
    * score 0. The song's density is the mean over words (from the second word on).
    */
-  function rhymeDensity(lines, lookback) {
+  function rhymeDensity(lines, lookback) { return rhymeDensityDetail(lines, lookback).value; }
+
+  /** Rhyme density plus each word's best match, for explaining the number. */
+  function rhymeDensityDetail(lines, lookback) {
     lookback = lookback || 10;
-    const vow = [], vowWord = [], words = [], ends = [];
+    const vow = [], vowWord = [], words = [], ends = [], objs = [];
     lines.forEach(L => L.words.forEach(W => {
       if (!W.syls || !W.syls.length) return;
       const wi = words.length;
       words.push(W.key);
+      objs.push(W);
       W.syls.forEach(s => { vow.push(s.reduced ? 'ə' : (VNORM[s.vowel] || s.vowel)); vowWord.push(wi); });
       ends.push(vow.length - 1);
     }));
@@ -816,12 +830,15 @@
       return l === 1 ? 0 : l;
     };
     let sum = 0, count = 0;
+    const best = [];
     for (let w2 = 1; w2 < words.length; w2++) {
-      let m = 0;
-      for (let w1 = Math.max(0, w2 - lookback); w1 < w2; w1++) m = Math.max(m, fixed(w1, w2));
+      let m = 0, from = -1;
+      for (let w1 = Math.max(0, w2 - lookback); w1 < w2; w1++) { const l = fixed(w1, w2); if (l > m) { m = l; from = w1; } }
       sum += m; count++;
+      if (m) best.push({ word: objs[w2], len: m, with: objs[from] });
     }
-    return count ? sum / count : 0;
+    best.sort((a, b) => b.len - a.len);
+    return { value: count ? sum / count : 0, words: count, top: best.slice(0, 8) };
   }
 
   const api = {

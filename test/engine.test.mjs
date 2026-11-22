@@ -99,6 +99,9 @@ describe('choosing between dictionary readings', () => {
     assert.equal(reading('I read it in my bed', 'read'), 'ɹɛd');
     assert.equal(reading('I do it again\nand feel the pain', 'again'), 'ə.ˈɡeɪn');
   });
+  test('accent variants never flip, even when they would rhyme', () => {
+    assert.equal(reading("A little grease always keeps the wheels a-spinnin'\nLike sitting on twenty threes to get the squealers grinnin'", 'get'), 'ɡɛt');
+  });
   test('function words keep their usual reading', () => {
     assert.equal(reading('a day in the sun', 'a'), 'ə');
   });
