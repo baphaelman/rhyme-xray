@@ -253,12 +253,14 @@ input[type="range"] { accent-color: var(--ink-2); }
 .unfold { display: flex; align-items: center; gap: 10px; width: 100%; padding: 0 18px 14px; border: 0; background: none; color: var(--ink-2); font-size: 13px; text-align: left; cursor: pointer; }
 .unfold b { color: var(--accent); font-weight: 400; }
 .unfold svg { width: 14px; height: 14px; flex: none; }
-.lines { list-style: none; margin: 0; padding: 16px 18px 20px 8px; font: 19px/1 var(--f-mono); }
-:root[data-density="compact"] .lines { font-size: 15px; padding-block: 12px 16px; }
+/* Line height leaves room between two lines for the most a line can carry: Ink chip padding,
+   then up to three stacked underlines below, or a band or outline above and below. drawLanes
+   sizes those marks in the same em units, so nothing touches the next line at any setting. */
+.lines { list-style: none; margin: 0; padding: 16px 18px 20px 8px; font: 19px/1 var(--f-mono); --lh: 2.4; --chip-pad: .14em; }
+:root[data-density="compact"] .lines { font-size: 15px; padding-block: 12px 16px; --lh: 2.15; --chip-pad: .08em; }
 .ln { display: grid; grid-template-columns: 62px minmax(0, 1fr); align-items: baseline; }
 .gut { display: flex; justify-content: flex-end; align-items: baseline; gap: 6px; padding-right: 12px; font: 500 11px/1 var(--f-mono); color: var(--ink-3); user-select: none; }
-.txt { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 2.35; min-width: 0; }
-:root[data-density="compact"] .txt { line-height: 1.95; }
+.txt { white-space: pre-wrap; overflow-wrap: anywhere; line-height: var(--lh); min-width: 0; }
 
 /* rhyme colours: Text tint colours the letters; Ink sets them on dark chips */
 .syl { border-radius: 3px; transition: opacity .15s ease, box-shadow .15s ease; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
@@ -266,7 +268,7 @@ input[type="range"] { accent-color: var(--ink-2); }
 .syl:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .syl.g { cursor: pointer; color: oklch(calc(var(--tint-l) + var(--dl, 0)) var(--tint-c) var(--h)); }
 .syl.g.soft { color: oklch(calc(var(--tint-l) + var(--dl, 0)) var(--tint-c) var(--h) / .7); }
-:root[data-colours="ink"] .syl.g { color: var(--on-chip); background: oklch(calc(var(--chip-l) + var(--dl, 0)) var(--chip-c) var(--h)); padding: 3px 0; }
+:root[data-colours="ink"] .syl.g { color: var(--on-chip); background: oklch(calc(var(--chip-l) + var(--dl, 0)) var(--chip-c) var(--h)); padding: var(--chip-pad, .15em) 0; }
 :root[data-colours="ink"] .syl.g.soft { color: var(--ink); background: oklch(calc(var(--chip-l) + var(--dl, 0)) var(--chip-c) var(--h) / .42); }
 .w.guess { text-decoration: underline dotted var(--ink-3); text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
 .sch {
@@ -477,7 +479,6 @@ kbd { font: 11.5px var(--f-mono); padding: 1px 5px; border: 1px solid var(--rule
   .songhead { padding-top: 18px; }
   .songhead h2 { font-size: 22px; }
   .lines { font-size: 15.5px; padding: 12px 12px 16px 2px; }
-  .txt { line-height: 2.15; }
   .ln { grid-template-columns: 36px minmax(0, 1fr); }
   .gut .num { display: none; }
   .gut { padding-right: 8px; }
@@ -737,7 +738,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
         <div class="explain">
           <p>A multisyllabic rhyme is two runs of syllables whose rhyme parts match position by position, across word boundaries. Malmi et al. measure rhyme the same way, as the longest matching vowel sequence.</p>
           <p>A run starts on a stressed syllable on both sides. Stressed positions must match at the chosen category, and two unstressed schwas may stand in for each other. One weak syllable in the middle may break the pattern, because performers swallow those. A run needs at least two positions that carry the rhyme, and repeating the same words doesn't count.</p>
-          <p>Each multisyllabic rhyme gets a colour of its own, separate from the syllable colours, and is drawn as one unit: a band behind it, or an underline or outline if you pick one under Display. Back-to-back repeats of a pattern on one line merge into one.</p>
+          <p>Each multisyllabic rhyme gets a colour of its own, separate from the syllable colours, and is drawn as one unit: underlined, or with a band or outline if you pick one under Display. Back-to-back repeats of a pattern on one line merge into one.</p>
         </div>
         <div class="demo" id="demo-multi"></div>
       </div>
@@ -826,7 +827,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   const state = {
     ready: false,
     tier: 2, identical: true, reach: 4,
-    colours: 'tint', multis: 'band', density: 'comfortable',
+    colours: 'ink', multis: 'line', density: 'comfortable',
     A: null,
     pinned: null, // { kind: 'group' | 'multi', id }
     cur: 0, // the section being read; the rail lists follow it
@@ -1120,6 +1121,12 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     }
   }
 
+  // Sizes of the multisyllabic marks, in em of the verse text. The line heights in the CSS
+  // (--lh) leave room for three lanes of either kind; change them together.
+  const LANE_EM = {
+    comfortable: { off: 0.12, step: 0.22, pad: 0.12, padStep: 0.1 },
+    compact: { off: 0.08, step: 0.18, pad: 0.08, padStep: 0.08 }
+  };
   // Multisyllabic rhymes, drawn behind the text (band), under it (underline) or around it
   // (outline), one shape per visual row of a span. Overlapping spans step out by lane.
   function drawLanes() {
@@ -1128,6 +1135,9 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     if (!A || card.classList.contains('editing') || state.multis === 'none') return;
     const mode = state.multis;
     const base = stage.getBoundingClientRect();
+    const linesEl = lyric.querySelector('.lines');
+    const em = linesEl ? parseFloat(getComputedStyle(linesEl).fontSize) : 19;
+    const G = LANE_EM[state.density];
     const frag = document.createDocumentFragment();
     const byId = new Map();
     lyric.querySelectorAll('[data-sid]').forEach(el => byId.set(+el.dataset.sid, el));
@@ -1155,9 +1165,9 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
         if (mode === 'line') {
           d.style.left = (row.l - base.left + 1) + 'px';
           d.style.width = Math.max(6, row.r - row.l - 2) + 'px';
-          d.style.top = (row.b - base.top + 3 + sp.lane * 5) + 'px';
+          d.style.top = (row.b - base.top + (G.off + sp.lane * G.step) * em) + 'px';
         } else {
-          const pad = 3 + sp.lane * 3;
+          const pad = (G.pad + sp.lane * G.padStep) * em;
           d.style.left = (row.l - base.left - pad) + 'px';
           d.style.width = (row.r - row.l + 2 * pad) + 'px';
           d.style.top = (row.t - base.top - pad) + 'px';

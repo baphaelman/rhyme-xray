@@ -44,9 +44,10 @@ every word is guessed from its spelling instead and results get rougher.
   window they open in a card over the syllable instead.
 - Click a syllable (or press Enter on it) to pin its details, then select any of the text
   to copy. Esc, the × or a click elsewhere lets go.
-- **Display** sets how rhymes are drawn: **Text tint** colours the letters, **Ink** sets
-  them on coloured chips; multisyllabic rhymes show as a band, an underline, an outline or
-  not at all; spacing is comfortable or compact. The page is dark by default and the
+- **Display** sets how rhymes are drawn: **Ink** sets syllables on coloured chips, **Text
+  tint** colours the letters instead; multisyllabic rhymes show as an underline, a band, an
+  outline or not at all; spacing is comfortable or compact. The default is Ink with
+  underlines. The page is dark by default and the
   sun/moon button switches theme. Your browser remembers these choices.
 - **How Rhyme X-ray works**, below the verse, explains the eight steps one dropdown at a
   time. Each step shows, beside the rule, what it did to the verse on screen: the IPA
@@ -67,9 +68,9 @@ Reading the colours:
 
 | Mark | Meaning |
 | --- | --- |
-| Coloured letters (Text tint) or chip (Ink) | perfect or near rhyme with another syllable of the same colour |
+| Coloured chip (Ink) or coloured letters (Text tint) | perfect or near rhyme with another syllable of the same colour |
 | Fainter colour | linked by vowel only (assonance) |
-| Band (or underline / outline) | a multisyllabic rhyme; every part of one shares its own colour |
+| Underline (or band / outline) | a multisyllabic rhyme; every part of one shares its own colour |
 | Dotted underline | a word not in the dictionary; its sounds were guessed from the spelling |
 | Letter beside the line number | the end-rhyme scheme, coloured like the rhyme it stands for (A, B, …; `x` = the line ending does not rhyme) |
 
