@@ -107,11 +107,13 @@ button, input, textarea { font: inherit; color: inherit; }
 .seg button:hover { color: var(--ink); }
 .seg button[aria-pressed="true"] { background: var(--sheet); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / .12); }
 .bar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+@media (max-width: 600px) { .bar-right { flex: 1 1 100%; flex-wrap: nowrap; } .bar-right select { flex: 1; min-width: 0; } }
 .text-btn {
   border: 1px solid var(--rule); background: transparent; border-radius: 8px; padding: 5px 10px;
   color: var(--ink-2); cursor: pointer; font-size: 13.5px;
 }
 .text-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 select.text-btn { appearance: none; padding-right: 26px; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: calc(100% - 13px) 55%, calc(100% - 9px) 55%; background-size: 4px 4px; background-repeat: no-repeat; }
 
 .legend {
@@ -139,6 +141,8 @@ select.text-btn { appearance: none; padding-right: 26px; background-image: linea
 }
 .sch.g { border: 0; color: var(--on-fill); background: oklch(var(--fill-l) var(--fill-c) var(--h)); }
 .txt { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 2.75; min-width: 0; }
+.syl:focus { outline: none; }
+.syl:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .syl { border-radius: 3px; transition: opacity .15s ease, box-shadow .15s ease; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .syl.g { background: oklch(calc(var(--fill-l) + var(--dl, 0)) var(--fill-c) var(--h)); color: var(--on-fill); padding: 3px 0; cursor: pointer; }
 .syl.g.soft { background: color-mix(in oklch, oklch(calc(var(--fill-l) + var(--dl, 0)) var(--fill-c) var(--h)) var(--soft-a), transparent); color: var(--ink); }
@@ -213,7 +217,8 @@ kbd { font: 12px var(--f-mono); padding: 1px 5px; border: 1px solid var(--rule);
 .tool-label { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
 .tool.reach input { width: 140px; }
 .tool.reach output { font: 500 13px var(--f-mono); color: var(--ink-2); min-width: 7ch; }
-.tool-note { flex: 1 1 220px; margin: 0; font-size: 12.5px; color: var(--ink-3); }
+.tool.tier { flex-wrap: wrap; }
+.tool-note { flex: 1 1 22ch; max-width: 32ch; margin: 0; font-size: 12.5px; line-height: 1.35; color: var(--ink-3); }
 .switch { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; font-weight: 500; }
 .switch input { position: absolute; opacity: 0; pointer-events: none; }
 .switch .track { width: 36px; height: 21px; border-radius: 11px; background: var(--rule); position: relative; transition: background .15s; flex: none; }
@@ -224,7 +229,7 @@ kbd { font: 12px var(--f-mono); padding: 1px 5px; border: 1px solid var(--rule);
 input[type="range"] { accent-color: var(--accent); }
 
 .readings {
-  display: grid; grid-template-columns: 1.1fr 2.4fr 1.3fr; margin-bottom: 20px;
+  display: grid; grid-template-columns: 1fr 2.6fr; margin-bottom: 20px;
   background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px;
 }
 .reading { min-width: 0; padding: 12px 16px; }
@@ -233,8 +238,7 @@ input[type="range"] { accent-color: var(--accent); }
 .reading span { display: block; font-size: 12.5px; color: var(--ink-2); }
 .reading small { display: block; font-size: 12px; color: var(--ink-3); margin-top: 2px; overflow-wrap: anywhere; }
 @media (max-width: 760px) {
-  .readings { grid-template-columns: 1fr 1fr; }
-  .readings .reading.wide { grid-column: 1 / -1; order: 3; border-left: 0; border-top: 1px solid var(--rule); }
+  .readings { grid-template-columns: 1fr 1.7fr; }
 }
 
 .song { flex: 1; min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -443,13 +447,14 @@ input[type="range"] { accent-color: var(--accent); }
   </form>
 
   <section class="toolbar" aria-label="Matching">
-    <div class="tool">
+    <div class="tool tier">
       <span class="tool-label" id="tierLabel">Rhymes</span>
       <div class="seg" role="group" aria-labelledby="tierLabel">
         <button type="button" data-tier="0" aria-pressed="false" title="Same vowel and same following consonants">Perfect</button>
         <button type="button" data-tier="1" aria-pressed="false" title="Also related consonants or one extra consonant">Near</button>
         <button type="button" data-tier="2" aria-pressed="true" title="Also same vowel alone">Assonance</button>
       </div>
+      <p class="tool-note" id="tierNote"></p>
     </div>
     <div class="tool reach">
       <label class="tool-label" for="reach">Reach</label>
@@ -461,13 +466,11 @@ input[type="range"] { accent-color: var(--accent); }
       <span class="track" aria-hidden="true"></span>
       <span>A word rhymes with itself</span>
     </label>
-    <p class="tool-note" id="tierNote"></p>
   </section>
 
   <section class="readings" aria-label="Readings">
     <div class="reading"><b id="rShare">–</b><span>syllables rhyme</span><small id="rShareSub">&nbsp;</small></div>
     <button type="button" class="reading wide jump" id="rLongest" title="Show this rhyme in the verse"><b id="rMulti">–</b><span>longest multisyllabic rhyme</span><small id="rMultiSub">&nbsp;</small></button>
-    <div class="reading" title="Average length of each word's longest matching vowel run (Malmi et al. 2016). The DopeLearning study measured 0.87–1.19 across 94 artists' full catalogues."><b id="rDensity">–</b><span>rhyme density</span><small>Raplyzer measure; rappers score 0.87–1.19</small></div>
   </section>
 
   <div class="grid">
@@ -479,6 +482,7 @@ input[type="range"] { accent-color: var(--accent); }
         </div>
         <div class="song" id="song" hidden></div>
         <div class="bar-right">
+          <button type="button" class="text-btn" id="share" title="Copy a link that opens this verse with these settings">Copy link</button>
           <label for="examples" style="position:absolute;left:-9999px">Load an example verse</label>
           <select class="text-btn" id="examples">
             <option value="">Examples…</option>
@@ -496,11 +500,11 @@ input[type="range"] { accent-color: var(--accent); }
         <span><i class="k soft">sit</i> vowel only (assonance)</span>
         <span><i class="k multi">wheels a-spin</i> multisyllabic run</span>
         <span><i class="k guess">skrrt</i> sound guessed from spelling</span>
-        <span class="tip">Hover or tap a syllable for its sounds</span>
+        <span class="tip">Hover, tap or Tab to a syllable for its sounds</span>
       </div>
       <div class="stage" id="stage">
         <div id="lanes" aria-hidden="true"></div>
-        <ol class="lyric" id="lyric"></ol>
+        <ol class="lyric" id="lyric" aria-label="Lyrics. Tab into them, then use the arrow keys to move between syllables, Enter to pin a syllable's card, Escape to close it."></ol>
       </div>
       <div class="editor">
         <textarea id="input" spellcheck="false" aria-label="Lyrics">A little grease always keeps the wheels a-spinnin'
@@ -579,6 +583,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
             <li><b>Near</b>: same vowel; consonants from the same family (stops, fricatives, nasals, ignoring voicing) or one extra consonant (time / line, wheels / squealers).</li>
             <li><b>Assonance</b>: the same vowel alone (sit / spin). Rap analysts treat this as the backbone of modern rhyme, so it counts, but it's drawn lighter.</li>
           </ul>
+          <p>The vowels of "cot" and "caught" count as one, as in most rap accents, except before r: "door" and "car" don't rhyme.</p>
           <p>The <b>Rhymes</b> switch above the verse sets the loosest category allowed.</p>
         </div>
         <div class="demo" id="demo-tiers"></div>
@@ -591,7 +596,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
         <div class="explain">
           <p>Only syllables a listener hears as beats are compared on their own: stressed syllables of content words, the last syllable of every line, and full unstressed endings like the -y of "sweaty".</p>
           <p>Function words ("the", "a", "on") and weak syllables can still be coloured, but only as part of a longer multisyllabic rhyme. Without this rule every "the" would rhyme with every "a".</p>
-          <p>Two syllables can link only if they're within <b>Reach</b> lines of each other (four by default). Lines like [Chorus] are headings and don't count.</p>
+          <p>Two syllables can link only if they're within <b>Reach</b> lines of each other (four by default) and in the same section. A blank line or a heading like [Chorus] starts a new section.</p>
         </div>
         <div class="demo" id="demo-compare"></div>
       </div>
@@ -613,9 +618,9 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
       <summary><span class="num">7</span><span class="st">Groups and colours</span><span class="sub">every link joins a group; groups get colours</span></summary>
       <div class="cols">
         <div class="explain">
-          <p>Every link, single or inside a multi, joins two syllables into the same rhyme group. Groups chain: if A rhymes with B and B with C, all three share a colour.</p>
-          <p>A group is named by its most common rhyme part in IPA. When its members disagree, it's named by the vowel alone.</p>
-          <p>Colours come from a 14-colour palette built for both light and dark themes. Groups within reach of each other always get different colours. A letter in the margin marks each line's end rhyme, A, B and so on, with <b>x</b> for a line ending that doesn't rhyme.</p>
+          <p>Links, single or inside a multi, join syllables into rhyme groups, closest match first. Groups chain: if A rhymes with B and B with C, all three share a colour. But a looser link never merges two groups that each rhyme more closely on their own, so "peace / lease" and "keep / deep" stay two colours though they share a vowel, and one vowel can't spread across a whole verse. A looser link can still bring a lone syllable into a group.</p>
+          <p>A group is named by the rhyme part, in IPA, that most of its members share. If none covers more than half, it's named by the vowel alone. A stress mark shows when most of its syllables are stressed: /ˈɪn/ for "spin / grin", plain /ɪn/ for the unstressed "-nin' / -nin'".</p>
+          <p>Colours come from a 14-colour palette built for both light and dark themes. Groups within reach of each other always get different colours. A letter in the margin marks each line's end rhyme, A, B and so on, with <b>x</b> for a line ending that doesn't rhyme. Letters start again at A in each section.</p>
         </div>
         <div class="demo" id="demo-groups"></div>
       </div>
@@ -627,7 +632,6 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
         <div class="explain">
           <p><b>Syllables that rhyme</b>: coloured syllables divided by all syllables.</p>
           <p><b>Longest multisyllabic rhyme</b>: the longest run from step 6.</p>
-          <p><b>Rhyme density</b> is Raplyzer's measure (Malmi et al., 2016). For every word, find the longest vowel sequence ending at it that also ends at one of the previous ten words. Consonants are ignored, a word repeating itself scores 0, and so does a single-vowel match. Average over all words. Across 94 artists' full catalogues the study measured 0.87 (The Lonely Island) to 1.19 (Inspectah Deck). A short excerpt can score far outside that range.</p>
         </div>
         <div class="demo" id="demo-numbers"></div>
       </div>
@@ -648,6 +652,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
 </div>
 
 <div class="pop" id="pop" role="tooltip" hidden></div>
+<div class="sr-only" id="sr" aria-live="polite"></div>
 
 <script src="engine.js"></script>
 <script>
@@ -743,6 +748,12 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
 
   function render() {
     hidePop();
+    if (state.loadingMsg) {
+      lyric.innerHTML = `<li class="ln"><span class="gut"></span><span class="txt" style="color:var(--ink-3)">${esc(state.loadingMsg)}</span></li>`;
+      lanes.innerHTML = '';
+      return;
+    }
+    queueHash();
     if (!state.ready) { renderPlain(); return; }
     const A = E.analyse(ta.value, { tier: state.tier, identical: state.identical, reach: state.reach });
     state.A = A;
@@ -764,8 +775,8 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
           const t = esc(L.raw.slice(s.cs, s.ce));
           const g = groupOf(s.id);
           w += g
-            ? `<span class="syl g${s.soft ? ' soft' : ''}" data-sid="${s.id}" data-g="${g.id}" style="${colourVars(g.color)}">${t}</span>`
-            : `<span class="syl" data-sid="${s.id}">${t}</span>`;
+            ? `<span class="syl g${s.soft ? ' soft' : ''}" tabindex="-1" data-sid="${s.id}" data-g="${g.id}" style="${colourVars(g.color)}">${t}</span>`
+            : `<span class="syl" tabindex="-1" data-sid="${s.id}">${t}</span>`;
           p = s.ce;
         }
         w += esc(L.raw.slice(p, W.e));
@@ -782,6 +793,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     }
     lyric.innerHTML = html || '<li class="ln"><span class="gut"></span><span class="txt" style="color:var(--ink-3)">Nothing to X-ray yet. Choose Edit text and paste a verse.</span></li>';
     lyric.classList.remove('loading');
+    setRover(state.rover);
 
     renderReadings(A);
     renderLists(A);
@@ -815,7 +827,6 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
       $('rLongest').disabled = true;
       $('rMultiSub').textContent = 'No run of two or more rhyming syllables found.';
     }
-    $('rDensity').textContent = st.density.toFixed(2);
   }
 
   function renderLists(A) {
@@ -1057,11 +1068,9 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   function demoNumbers(A) {
     const st = A.stats;
     if (!st.syllables) return DEMO + '<p class="none">Paste a verse to see its numbers.</p>';
-    const top = (st.densityTop || []).filter(t => t.word.syls.length > 1 || t.with.syls.length > 1).slice(0, 3).map(t => `<span class="dpair">${esc(wordName(t.word))} <i>matches</i> ${esc(wordName(t.with))} <i>over ${t.len} vowels</i></span>`).join('');
     return DEMO + `<div class="nums">
       <div><span class="big">${Math.round(100 * st.share)}%</span>${st.rhyming} coloured ÷ ${st.syllables} syllables</div>
-      <div><span class="big">${st.density.toFixed(2)}</span>average best vowel-run match over ${st.densityWords} words</div>
-      ${top ? `<div><div class="why" style="margin-bottom:6px">Longest vowel-run matches:</div><div class="dpairs">${top}</div></div>` : ''}
+      <div><span class="big">${st.longest ? st.longest.len : 0}</span>${st.longest ? `syllables in the longest run, “${esc(st.longest.a)}” ↔ “${esc(st.longest.b)}”` : 'no multisyllabic rhyme at this setting'}</div>
     </div>`;
   }
 
@@ -1187,6 +1196,53 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     showPop(el, true);
   }
 
+  // Keyboard: the verse is one Tab stop; arrow keys move between syllables, Enter or Space pins.
+  function setRover(sid) {
+    const cur = lyric.querySelector('.syl[tabindex="0"]'); if (cur) cur.tabIndex = -1;
+    const el = (sid != null && sylEl(sid)) || lyric.querySelector('.syl');
+    if (!el) return;
+    el.tabIndex = 0;
+    state.rover = +el.dataset.sid;
+  }
+  const centerX = el => { const r = el.getBoundingClientRect(); return r.left + r.width / 2; };
+  lyric.addEventListener('keydown', e => {
+    const el = e.target.closest && e.target.closest('.syl'); if (!el) return;
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); return; }
+    const syls = [...lyric.querySelectorAll('.syl')], i = syls.indexOf(el), line = el.closest('.ln');
+    let to = null;
+    if (e.key === 'ArrowRight') to = syls[i + 1];
+    else if (e.key === 'ArrowLeft') to = syls[i - 1];
+    else if (e.key === 'Home') to = line.querySelector('.syl');
+    else if (e.key === 'End') to = [...line.querySelectorAll('.syl')].pop();
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      const lines = [...lyric.querySelectorAll('.ln')].filter(l => l.querySelector('.syl'));
+      const next = lines[lines.indexOf(line) + (e.key === 'ArrowDown' ? 1 : -1)];
+      if (next) {
+        const x = centerX(el);
+        to = [...next.querySelectorAll('.syl')].reduce((m, c) => (Math.abs(centerX(c) - x) < Math.abs(centerX(m) - x) ? c : m));
+      }
+    } else return;
+    e.preventDefault();
+    if (!to) return;
+    if (state.frozen != null) { hidePop(); clearPin(); }
+    setRover(+to.dataset.sid);
+    to.focus({ preventScroll: true });
+    to.scrollIntoView({ block: 'nearest' });
+  });
+  lyric.addEventListener('focusin', e => {
+    const el = e.target.closest('.syl'); if (!el || !state.A) return;
+    if (el.tabIndex !== 0) setRover(+el.dataset.sid);
+    if (state.frozen != null) return;
+    hoverSid = +el.dataset.sid; applyFocus(); showPop(el);
+    // Read the card out for screen readers.
+    const rows = [...pop.querySelectorAll('dt')].map(dt => `${dt.textContent}: ${dt.nextElementSibling ? dt.nextElementSibling.textContent : ''}`);
+    $('sr').textContent = `${pop.querySelector('.w').textContent}. ${rows.join('. ')}`;
+  });
+  lyric.addEventListener('focusout', e => {
+    if (lyric.contains(e.relatedTarget) || state.frozen != null) return;
+    hoverSid = null; applyFocus(); hidePop();
+  });
+
   lyric.addEventListener('mouseover', e => {
     if (state.frozen != null) return; // a pinned card stays put
     const el = e.target.closest('.syl'); if (!el || !state.A) return;
@@ -1214,7 +1270,12 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     hidePop(); clearPin();
   });
   stage.addEventListener('click', e => { if (!e.target.closest('.syl') && !e.target.closest('.sch.g')) { hidePop(); clearPin(); } });
-  window.addEventListener('scroll', () => { if (!pop.hidden && state.frozen == null) { hoverSid = null; hidePop(); applyFocus(); } }, { passive: true });
+  window.addEventListener('scroll', () => {
+    if (pop.hidden || state.frozen != null) return;
+    const a = document.activeElement; // a card opened from the keyboard follows its syllable
+    if (a && lyric.contains(a) && a.classList.contains('syl') && hoverSid === +a.dataset.sid) { placePop(a); return; }
+    hoverSid = null; hidePop(); applyFocus();
+  }, { passive: true });
 
   let raf = 0;
   const relayout = () => {
@@ -1233,6 +1294,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   const qIn = $('q'), results = $('results'), note = $('finderNote');
   const NOTE = note.innerHTML;
   const LRCLIB = 'https://lrclib.net/api/search?q=';
+  const LRCLIB_HEADERS = { 'Lrclib-Client': 'Rhyme X-ray (https://github.com/baphaelman/rhyme-xray)' };
   let found = [], active = -1, ctrl = null, timer = 0, lastQuery = '';
 
   function setSong(song) {
@@ -1280,10 +1342,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     ctrl = new AbortController();
     showMessage('Searching…');
     try {
-      const res = await fetch(LRCLIB + encodeURIComponent(query), {
-        signal: ctrl.signal,
-        headers: { 'Lrclib-Client': 'Rhyme X-ray (https://github.com/baphaelman/rhyme-xray)' }
-      });
+      const res = await fetch(LRCLIB + encodeURIComponent(query), { signal: ctrl.signal, headers: LRCLIB_HEADERS });
       if (!res.ok) throw new Error(res.status === 429 ? 'too many searches, wait a moment' : 'HTTP ' + res.status);
       const data = await res.json();
       const seen = new Set();
@@ -1322,7 +1381,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   function pick(i) {
     const r = found[i]; if (!r) return;
     ta.value = cleanLyrics(r.plainLyrics);
-    setSong({ track: r.trackName, artist: r.artistName, album: r.albumName || '', lrclib: true });
+    setSong({ track: r.trackName, artist: r.artistName, album: r.albumName || '', lrclib: true, id: r.id });
     closeResults();
     qIn.blur();
     state.pinned = null;
@@ -1353,6 +1412,96 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   results.addEventListener('click', e => { const li = e.target.closest('li[data-i]'); if (li) pick(+li.dataset.i); });
   document.addEventListener('click', e => { if (!e.target.closest('#finder')) closeResults(); });
 
+  // ------------------------------------------------------------ shareable link
+  // The address keeps the verse and settings: #song=<LRCLIB id>, #ex=<example> or
+  // #text=<compressed text>, plus &rhymes=…&reach=…&self=…  The default view keeps a bare address.
+  const TIER_KEYS = ['perfect', 'near', 'assonance'];
+  const b64u = bytes => {
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  };
+  const unb64u = str => Uint8Array.from(atob(str.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+  const pipe = (bytes, stream) => new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer().then(b => new Uint8Array(b));
+  async function packText(t) {
+    const raw = new TextEncoder().encode(t);
+    try { return 'z' + b64u(await pipe(raw, new CompressionStream('deflate-raw'))); } catch (e) { return 'u' + b64u(raw); }
+  }
+  async function unpackText(v) {
+    const bytes = unb64u(v.slice(1));
+    return new TextDecoder().decode(v[0] === 'z' ? await pipe(bytes, new DecompressionStream('deflate-raw')) : bytes);
+  }
+  const settingsParams = (p, tier, reach, identical) => {
+    p.set('rhymes', TIER_KEYS[tier]); p.set('reach', reach); p.set('self', identical ? '1' : '0'); return p;
+  };
+  const DEFAULT_HASH = settingsParams(new URLSearchParams({ ex: 'doom' }), E.DEFAULTS.tier, E.DEFAULTS.reach, E.DEFAULTS.identical).toString();
+  async function shareHash() {
+    const p = new URLSearchParams();
+    const ex = Object.keys(EXAMPLES).find(k => EXAMPLES[k] === ta.value);
+    if (state.song && state.song.id) p.set('song', state.song.id);
+    else if (ex) p.set('ex', ex);
+    else p.set('text', await packText(ta.value));
+    return settingsParams(p, state.tier, state.reach, state.identical).toString();
+  }
+  const pageUrl = () => location.href.split('#')[0];
+  let hashReady = false, hashTimer = 0, hashSeq = 0;
+  function queueHash() { clearTimeout(hashTimer); if (hashReady) hashTimer = setTimeout(writeHash, 250); }
+  async function writeHash() {
+    const seq = ++hashSeq;
+    const h = await shareHash();
+    if (seq !== hashSeq || !hashReady) return;
+    const url = pageUrl() + (h === DEFAULT_HASH ? '' : '#' + h);
+    try { if (url !== location.href) history.replaceState(null, '', url); } catch (e) { /* too many updates; the next one catches up */ }
+  }
+  async function readHash() {
+    const p = new URLSearchParams(location.hash.slice(1));
+    if (![...p.keys()].length) return;
+    const t = TIER_KEYS.indexOf(p.get('rhymes')); if (t >= 0) state.tier = t;
+    const r = Number(p.get('reach')); if (Number.isInteger(r) && r >= 1 && r <= 8) state.reach = r;
+    if (p.has('self')) state.identical = p.get('self') !== '0';
+    syncControls();
+    try {
+      if (p.get('song')) {
+        if (!/^\d+$/.test(p.get('song'))) throw new Error('bad song id');
+        state.loadingMsg = 'Loading the song from LRCLIB…'; render();
+        const res = await fetch('https://lrclib.net/api/get/' + p.get('song'), { headers: LRCLIB_HEADERS });
+        if (!res.ok) throw new Error(res.status === 404 ? 'song not found' : 'HTTP ' + res.status);
+        const song = await res.json();
+        if (!song.plainLyrics) throw new Error('no lyrics for this song');
+        ta.value = cleanLyrics(song.plainLyrics);
+        setSong({ track: song.trackName, artist: song.artistName, album: song.albumName || '', lrclib: true, id: song.id });
+      } else if (p.get('text')) {
+        ta.value = await unpackText(p.get('text'));
+        setSong(null);
+      } else if (EXAMPLES[p.get('ex')]) {
+        ta.value = EXAMPLES[p.get('ex')];
+        setSong(CREDITS[p.get('ex')] || null);
+      }
+    } catch (err) {
+      note.textContent = `Couldn't open the shared link (${err.message || err}). Showing the MF DOOM bar instead.`;
+      ta.value = EXAMPLES.doom; setSong(CREDITS.doom);
+    }
+    state.loadingMsg = null;
+    state.pinned = null;
+    setView(false);
+  }
+  async function openHash() {
+    hashReady = false;
+    try { await readHash(); } finally {
+      if (state.loadingMsg) { state.loadingMsg = null; render(); }
+      hashReady = true; queueHash();
+    }
+  }
+  window.addEventListener('hashchange', openHash);
+  $('share').addEventListener('click', async () => {
+    const b = $('share');
+    clearTimeout(hashTimer);
+    const url = pageUrl() + '#' + await shareHash();
+    try { history.replaceState(null, '', url); } catch (e) { /* ignore */ }
+    try { await navigator.clipboard.writeText(url); b.textContent = 'Link copied'; } catch (e) { b.textContent = 'Copy it from the address bar'; }
+    setTimeout(() => { b.textContent = 'Copy link'; }, 2000);
+  });
+
   // ------------------------------------------------------------ dictionary
   async function loadDictionary() {
     // The package is an ES module; a module import is allowed from file:// and in sandboxed pages.
@@ -1361,7 +1510,9 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   }
 
   syncControls();
+  if (location.hash.length > 1) state.loadingMsg = 'Opening the shared link…';
   render();
+  openHash();
   loadDictionary().then(d => {
     E.setDictionary(d);
     state.ready = true;

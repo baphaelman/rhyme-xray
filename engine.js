@@ -25,7 +25,9 @@
   // Vowels that collapse towards schwa when unstressed.
   const REDUCED = new Set(['AH', 'IH', 'ER', 'UH']);
   // cot–caught merger: most rap is performed in accents where these are one vowel.
+  // Not before r: "door" /dɔɹ/ and "car" /kɑɹ/ stay apart in every accent.
   const VNORM = { AO: 'AA' };
+  const normVowel = s => (s.vowel === 'AO' && s.rhymeCons[0] === 'R' ? 'AO' : VNORM[s.vowel] || s.vowel);
   // Consonants that sit at the edge of a syllable and do not carry rhyme.
   const GLIDES = new Set(['W', 'Y', 'HH']);
   // Manner families (Pattison's "family rhymes"); voicing is ignored inside a family.
@@ -367,7 +369,7 @@
 
   /** Key used to name a group, as IPA: vowel + coda. */
   function rhymeKey(s, withCoda) {
-    const v = ipaVowel(VNORM[s.vowel] || s.vowel, s.stress === 0 && s.reduced ? 0 : 1);
+    const v = ipaVowel(normVowel(s), s.stress === 0 && s.reduced ? 0 : 1);
     return withCoda ? v + s.rhymeCons.map(c => IPA_C[fold(c)] || '').join('') : v;
   }
 
@@ -385,12 +387,16 @@
   // ---------------------------------------------------------------- analysis
   function tokenize(text) {
     const lines = [];
-    let n = 0;
+    let n = 0, section = 0, open = false;
     const wordRe = /['’]?[A-Za-z0-9]+(?:['’][A-Za-z0-9]+)*['’]?/g;
     text.replace(/\r\n?/g, '\n').split('\n').forEach((raw, index) => {
       // Section labels such as "[Chorus]" or "(Verse 2)" are headings, not lyrics.
       const heading = /^\s*[\[(][^\])]*[\])]\s*$/.test(raw);
-      const L = { raw, index, heading, n: raw.trim() && !heading ? n++ : -1, words: [], syls: [] };
+      const lyric = !heading && !!raw.trim();
+      // A blank line or a heading ends a section; rhymes never link across sections.
+      if (!lyric && open) { section++; open = false; }
+      if (lyric) open = true;
+      const L = { raw, index, heading, section, n: lyric ? n++ : -1, words: [], syls: [] };
       if (heading) { lines.push(L); return; }
       let m;
       wordRe.lastIndex = 0;
@@ -410,7 +416,7 @@
     }
     s.reduced = s.stress === 0 && REDUCED.has(s.vowel);
     // Unstressed AH/IH/UH are all heard as schwa; unstressed ER keeps its r-colour.
-    s.vclass = s.reduced ? (s.vowel === 'ER' ? '@R' : '@') : (VNORM[s.vowel] || s.vowel);
+    s.vclass = s.reduced ? (s.vowel === 'ER' ? '@R' : '@') : normVowel(s);
     return s;
   }
   function wordIPA(syls) {
@@ -438,6 +444,7 @@
         W.src = pr.src; W.as = pr.as;
         W.key = W.text.toLowerCase().replace(/[’‘`]/g, "'").replace(/^'+|'+$/g, '');
         W.line = L.n;
+        W.section = L.section;
         W.cands = [pr.ph].concat(pr.alts || []);
         W.candSyls = W.cands.map(ph => syllabify(parsePhones(ph)).map(prep));
         W.choice = 0;
@@ -497,7 +504,7 @@
           let top = 0, who = null;
           for (let l = W.line - span; l <= W.line + span; l++) {
             for (const p of byLine.get(l) || []) {
-              if (p.W === W || p.W.key === W.key) continue;
+              if (p.W === W || p.W.key === W.key || p.W.section !== W.section) continue;
               const t = matchTier(s, p.s);
               let v = t === PERFECT ? 3 : t === NEAR ? 2 : 0;
               if (!v) continue;
@@ -545,7 +552,7 @@
         W.key = bare;
         sy.forEach((s, k) => {
           Object.assign(s, {
-            id: all.length, line: L.n, lineIndex: L.index, pos: L.syls.length, word: W, wi: k, nSyl: sy.length,
+            id: all.length, line: L.n, lineIndex: L.index, section: L.section, pos: L.syls.length, word: W, wi: k, nSyl: sy.length,
             cs: W.s + seg[k][0], ce: W.s + seg[k][1]
           });
           s.stop = sy.length === 1 && STOP.has(bare);
@@ -566,27 +573,16 @@
 
     const sameWord = (a, b) => a.word.key === b.word.key && a.wi === b.wi;
     const tierOf = (a, b) => (!opt.identical && sameWord(a, b)) ? NONE : matchTier(a, b);
-    const uf = new UF(all.length);
-    const best = new Array(all.length).fill(NONE);
-    const partner = new Array(all.length).fill(null);
-    const score = new Array(all.length).fill(Infinity);
-    const link = (a, b, t) => {
-      uf.union(a.id, b.id);
-      const sa = t * 10 + (b.stress > 0 ? 0 : 3) + (b.word === a.word ? 5 : 0);
-      const sb = t * 10 + (a.stress > 0 ? 0 : 3) + (a.word === b.word ? 5 : 0);
-      if (t < best[a.id]) best[a.id] = t;
-      if (t < best[b.id]) best[b.id] = t;
-      if (sa < score[a.id]) { score[a.id] = sa; partner[a.id] = b.id; }
-      if (sb < score[b.id]) { score[b.id] = sb; partner[b.id] = a.id; }
-    };
+    const links = [];
+    const link = (a, b, t) => links.push({ a, b, t });
     const span = opt.reach - 1; // max line distance
 
-    // 2. single-syllable rhymes inside the reach window
+    // 2. single-syllable rhymes inside the reach window (and inside one section)
     const elig = all.filter(s => s.eligible);
     for (let i = 0; i < elig.length; i++) {
       for (let j = i + 1; j < elig.length; j++) {
         const a = elig[i], b = elig[j];
-        if (b.line - a.line > span) break;
+        if (b.line - a.line > span || b.section !== a.section) break;
         if (a.word === b.word) continue;
         const t = tierOf(a, b);
         if (t <= opt.tier && t !== WEAK) link(a, b, t);
@@ -605,7 +601,7 @@
     const isGap = (a, b) => a.stress !== 1 && b.stress !== 1;
     const runs = [];
     for (let x = 0; x < body.length; x++) {
-      for (let y = x; y < body.length && body[y].n - body[x].n <= span; y++) {
+      for (let y = x; y < body.length && body[y].n - body[x].n <= span && body[y].section === body[x].section; y++) {
         const SA = body[x].syls, SB = body[y].syls;
         for (let i = 0; i < SA.length; i++) {
           for (let j = x === y ? i + 1 : 0; j < SB.length; j++) {
@@ -649,7 +645,36 @@
       if (r.tiers[k] !== null && colourable(s, r.b[k])) link(s, r.b[k], r.tiers[k]);
     }));
 
-    // 4. groups
+    // 4. groups. Links are applied closest tier first. A link may attach a syllable to a group,
+    //    or join syllables with nothing closer, but never merges two groups that are each held
+    //    together by a closer tier: near rhymes don't fuse two sets of perfect rhymes (peace /
+    //    lease and keep / deep stay two colours), assonance doesn't fuse near ones. Merging on
+    //    every link let one vowel chain from window to window and swallow a whole verse.
+    const uf = new UF(all.length);
+    const core = new Array(all.length).fill(Infinity); // by root: the closest tier linking the group
+    const gap = l => Math.abs(l.a.line - l.b.line);
+    links.sort((p, q) => p.t - q.t || gap(p) - gap(q) || p.a.id - q.a.id || p.b.id - q.b.id);
+    links.forEach(({ a, b, t }) => {
+      const ra = uf.find(a.id), rb = uf.find(b.id);
+      if (ra === rb) return;
+      if (core[ra] < t && core[rb] < t) return;
+      const c = Math.min(core[ra], core[rb], t);
+      uf.union(ra, rb);
+      core[uf.find(ra)] = c;
+    });
+    // A syllable's tier and partner come from its best link inside its own group.
+    const best = new Array(all.length).fill(NONE);
+    const partner = new Array(all.length).fill(null);
+    const score = new Array(all.length).fill(Infinity);
+    links.forEach(({ a, b, t }) => {
+      if (uf.find(a.id) !== uf.find(b.id)) return;
+      const sa = t * 10 + (b.stress > 0 ? 0 : 3) + (b.word === a.word ? 5 : 0);
+      const sb = t * 10 + (a.stress > 0 ? 0 : 3) + (a.word === b.word ? 5 : 0);
+      if (t < best[a.id]) best[a.id] = t;
+      if (t < best[b.id]) best[b.id] = t;
+      if (sa < score[a.id]) { score[a.id] = sa; partner[a.id] = b.id; }
+      if (sb < score[b.id]) { score[b.id] = sb; partner[b.id] = a.id; }
+    });
     const comps = new Map();
     all.forEach(s => {
       if (best[s.id] === NONE) return;
@@ -668,7 +693,14 @@
         vow.set(v, (vow.get(v) || 0) + 1);
       });
       const top = [...full.entries()].sort((p, q) => q[1] - p[1])[0];
-      g.key = top[1] >= 0.5 * members.length ? top[0] : [...vow.entries()].sort((p, q) => q[1] - p[1])[0][0];
+      // Named by the rhyme part most members share; with no majority, by the vowel alone.
+      g.key = top[1] > 0.5 * members.length ? top[0] : [...vow.entries()].sort((p, q) => q[1] - p[1])[0][0];
+      // Stress mark by what most members are (ˈ stressed, ˌ secondary, none unstressed), so the
+      // stressed spin / grin (/ˈɪn/) and the unstressed -nin' / -nin' (/ɪn/) read differently.
+      const lv = [0, 0, 0];
+      members.forEach(s => { lv[s.stress] = (lv[s.stress] || 0) + 1; });
+      const stress = lv[1] >= lv[2] && lv[1] >= lv[0] ? 1 : lv[2] >= lv[0] ? 2 : 0;
+      g.key = ['', 'ˈ', 'ˌ'][stress] + g.key;
       g.tier = Math.min(...members.map(s => best[s.id]));
       g.firstLine = Math.min(...members.map(s => s.line));
       g.lastLine = Math.max(...members.map(s => s.line));
@@ -755,8 +787,10 @@
     })).sort((p, q) => q.len - p.len || p.spans[0].first - q.spans[0].first);
 
     // 6. end-rhyme scheme letters
-    const letters = new Map();
+    // Letters restart at A in each section, since no rhyme crosses one.
+    let letters = new Map(), sec = null;
     body.forEach(L => {
+      if (L.section !== sec) { sec = L.section; letters = new Map(); }
       const last = L.syls[L.syls.length - 1];
       const g = groupOf.get(last.id);
       if (!g) { L.scheme = 'x'; return; }
@@ -768,7 +802,6 @@
     // 7. statistics
     const rhyming = all.filter(s => groupOf.has(s.id)).length;
     const longest = runs.reduce((m, r) => (!m || r.len > m.len ? r : m), null);
-    const density = rhymeDensityDetail(lines);
     return {
       lines, syllables: all, groups, multis, spans: kept, runs, longestRun: longest,
       options: opt,
@@ -778,9 +811,6 @@
         share: all.length ? rhyming / all.length : 0,
         groups: groups.length,
         longest: longest ? { len: longest.len, a: wordsOf(lines, longest.a), b: wordsOf(lines, longest.b), aId: longest.a[0].id, bId: longest.b[0].id } : null,
-        density: density.value,
-        densityWords: density.words,
-        densityTop: density.top,
         guessed: lines.reduce((n, L) => n + L.words.filter(w => w.src === 'guess').length, 0)
       }
     };
@@ -797,53 +827,9 @@
     return lines[a.lineIndex].raw.slice(a.cs, b.ce);
   }
 
-  /**
-   * Rhyme density as defined by Raplyzer / DopeLearning (Malmi et al. 2016):
-   * for every word, the longest vowel sequence ending at that word that also ends at one
-   * of the previous `lookback` words; identical words do not count, and 1-vowel matches
-   * score 0. The song's density is the mean over words (from the second word on).
-   */
-  function rhymeDensity(lines, lookback) { return rhymeDensityDetail(lines, lookback).value; }
-
-  /** Rhyme density plus each word's best match, for explaining the number. */
-  function rhymeDensityDetail(lines, lookback) {
-    lookback = lookback || 10;
-    const vow = [], vowWord = [], words = [], ends = [], objs = [];
-    lines.forEach(L => L.words.forEach(W => {
-      if (!W.syls || !W.syls.length) return;
-      const wi = words.length;
-      words.push(W.key);
-      objs.push(W);
-      W.syls.forEach(s => { vow.push(s.reduced ? 'ə' : (VNORM[s.vowel] || s.vowel)); vowWord.push(wi); });
-      ends.push(vow.length - 1);
-    }));
-    const fixed = (w1, w2) => {
-      if (words[w1] === words[w2]) return 0;
-      const p1 = ends[w1], p2 = ends[w2];
-      let l = 0;
-      while (p1 - l >= 0 && vow[p1 - l] === vow[p2 - l]) {
-        const a = vowWord[p1 - l], b = vowWord[p2 - l];
-        if (a !== w1 && b !== w2 && words[a] === words[b]) break; // same earlier word on both sides
-        l++;
-        if (p1 - l < 0 || p2 - l <= p1) break;
-      }
-      return l === 1 ? 0 : l;
-    };
-    let sum = 0, count = 0;
-    const best = [];
-    for (let w2 = 1; w2 < words.length; w2++) {
-      let m = 0, from = -1;
-      for (let w1 = Math.max(0, w2 - lookback); w1 < w2; w1++) { const l = fixed(w1, w2); if (l > m) { m = l; from = w1; } }
-      sum += m; count++;
-      if (m) best.push({ word: objs[w2], len: m, with: objs[from] });
-    }
-    best.sort((a, b) => b.len - a.len);
-    return { value: count ? sum / count : 0, words: count, top: best.slice(0, 8) };
-  }
-
   const api = {
     setDictionary, pronounce, toIPA, syllabify, parsePhones, segmentLetters, matchTier, codaTier,
-    analyse, rhymeDensity, guessPhones, rhymeKey,
+    analyse, guessPhones, rhymeKey,
     TIERS: { PERFECT, NEAR, ASSONANCE, WEAK, NONE }, TIER_NAMES, DEFAULTS
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

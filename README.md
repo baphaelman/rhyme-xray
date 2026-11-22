@@ -27,12 +27,17 @@ every word is guessed from its spelling instead and results get rougher.
   X-rayed. Lyrics come from [LRCLIB](https://lrclib.net), a free community lyrics database.
   The page fetches them in your browser; nothing is stored in this repo.
 - **Edit text** to paste your own verse, then **X-ray it** (or press Ctrl/⌘+Enter).
-  Lines such as `[Chorus]` become section headings and are not analysed.
-- Hover or tap a syllable. A card shows the word and syllable in IPA, its rhyme part, what
-  it rhymes with (and on which line), the match type, where the pronunciation came from,
-  and which reading was chosen when a word has several.
-- Click a syllable to pin its card, then select any of its text to copy. Esc, the × or a
-  click elsewhere closes it.
+  Lines such as `[Chorus]` become section headings and are not analysed. A blank line or a
+  heading starts a new section: rhymes never link across one, and end-rhyme letters restart.
+- **Copy link** copies an address that reopens the verse with the same settings: an LRCLIB
+  song by its id, an example by name, or pasted text compressed into the address. The
+  address bar keeps up as you go, so it can be copied from there too.
+- Hover or tap a syllable, or Tab into the verse and move with the arrow keys. A card
+  shows the word and syllable in IPA, its rhyme part, what it rhymes with (and on which
+  line), the match type, where the pronunciation came from, and which reading was chosen
+  when a word has several.
+- Click a syllable (or press Enter on it) to pin its card, then select any of its text to
+  copy. Esc, the × or a click elsewhere closes it.
 - **How Rhyme X-ray works**, below the verse, explains the eight steps one dropdown at a
   time. Each step shows, beside the rule, what it did to the verse on screen: the IPA
   of its words, the syllables and rhyme parts, the pairs at each match type, and the
@@ -86,20 +91,27 @@ Reading the colours:
    - *Near*: same vowel, and consonants from the same family (stops, fricatives, nasals,
      voicing ignored), or one extra consonant (wheels / squealers, grease / threes, time / line).
    - *Assonance*: same vowel only (sit / spin).
-   - The cot/caught vowels are merged. Unstressed /ə/ and /ɪ/ count as one schwa.
+   - The cot/caught vowels are merged, except before r ("door" does not rhyme with "car"). Unstressed /ə/ and /ɪ/ count as one schwa.
 5. **Who is compared on their own.** Stressed syllables of content words, the last
    syllable of every line, and full unstressed endings like the -y of "sweaty".
-   Unstressed function words ("the", "a", "in") are only coloured inside a multi.
+   Unstressed function words ("the", "a", "in") are only coloured inside a multi. Two
+   syllables are compared only within Reach lines and inside one section.
 6. **Multisyllabic rhymes.** Two runs of syllables match in order, starting on a stressed
    syllable on both sides. Stressed positions must match at the chosen tier. Unstressed
    schwas may stand in for each other. One syllable without primary stress may break the
    pattern in the middle (shadow boxing / battle rocking). A run needs at least two
    positions that carry the rhyme. A run that only repeats the same words is ignored.
    Overlapping runs of one pattern on a line are drawn as a single chained underline.
-7. **Groups and colours.** Every link (single or inside a multi) joins a group. Groups
-   that sit within reach of each other get different colours from a 14-colour palette.
-8. **Readings.** Share of syllables that rhyme, the longest
-   multisyllabic rhyme, and Raplyzer's rhyme density.
+7. **Groups and colours.** Links (single or inside a multi) join syllables into groups,
+   closest tier first. A link never merges two groups that are each held together by a
+   closer tier: near rhymes don't fuse two sets of perfect rhymes (peace / lease and
+   keep / deep stay apart), and assonance doesn't fuse near ones. A looser link can still
+   bring a lone syllable into a group. A group is named by the rhyme part most of its
+   members share, or by its vowel when none has a majority, with a stress mark when most
+   of its syllables are stressed (/ˈɪn/ for spin / grin, /ɪn/ for the unstressed -nin' /
+   -nin'). Groups that sit within reach of each other get different colours from a
+   14-colour palette.
+8. **Readings.** Share of syllables that rhyme, and the longest multisyllabic rhyme.
 
 ## Where the sources agree, and where they don't
 
@@ -108,7 +120,7 @@ rules. The tests in `test/engine.test.mjs` encode the points they agree on.
 
 **They agree that:**
 
-- **The stressed vowel carries the rhyme.** Malmi et al.'s Raplyzer / DopeLearning density
+- **The stressed vowel carries the rhyme.** Malmi et al.'s Raplyzer / DopeLearning rhyme measure
   uses *only* vowels. Wadsworth & Needle and the Vox / Martin Connor breakdowns treat
   assonance as rhyme. Hirjee & Brown and the WSJ *Hamilton* algorithm score vowels first.
 - **Multisyllabic rhymes are matching vowel sequences across word boundaries** (Malmi's
@@ -133,8 +145,7 @@ rules. The tests in `test/engine.test.mjs` encode the points they agree on.
 
 - E. Malmi, P. Takala, H. Toivonen, T. Raiko, A. Gionis, "DopeLearning: A Computational
   Approach to Rap Lyrics Generation", KDD 2016, <https://arxiv.org/abs/1505.04771>, and the
-  Raplyzer source, <https://github.com/ekQ/raplysaattori>. Rhyme density across 94 artists ranges
-  from 0.870 to 1.187.
+  Raplyzer source, <https://github.com/ekQ/raplysaattori>.
 - H. Hirjee, D. G. Brown, "Using Automated Rhyme Detection to Characterize Rhyming Style in
   Rap Music", *Empirical Musicology Review* 5(4), 2010. Also "Automatic Detection of
   Internal and Imperfect Rhymes in Rap Lyrics", ISMIR 2009.
@@ -158,8 +169,8 @@ rules. The tests in `test/engine.test.mjs` encode the points they agree on.
   vowel-based breakdowns, but stray links between common vowels do appear. Switch to Near
   for a stricter view.
 - Spelling guesses are crude: they only cover what the normalisation rules miss.
-- Over a whole song, groups chain from window to window, so one vowel can form a large
-  group. The group list shows each group's line range.
+- Inside a section, perfect rhymes still chain from window to window: a verse that keeps
+  returning to one rhyme keeps one colour. The group list shows each group's line range.
 - Song search depends on LRCLIB's coverage and transcriptions.
 
 ## Develop

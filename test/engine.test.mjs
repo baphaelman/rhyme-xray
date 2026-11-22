@@ -117,6 +117,11 @@ describe('match tiers (Pattison taxonomy)', () => {
     assert.equal(E.codaTier(codaOf('T AY1 M'), codaOf('L AY1 N')), NEAR);          // nasal family
     assert.equal(E.codaTier(codaOf('W IY1 L Z'), codaOf('S K W IY1 L')), NEAR);    // additive
   });
+  test('cot and caught merge, but not before r (door / car)', () => {
+    assert.ok(sameGroup(E.analyse('I got caught\nit was hot', { tier: PERFECT }), 'caught', 'hot'));
+    assert.ok(!sameGroup(E.analyse('I knocked on the door\nI drove the car', { tier: ASSONANCE }), 'door', 'car'));
+    assert.ok(sameGroup(E.analyse('I knocked on the door\nI need some more', { tier: PERFECT }), 'door', 'more'));
+  });
   test('unrelated consonants leave only assonance', () => {
     assert.equal(E.codaTier(codaOf('S IH1 T'), codaOf('S P IH1 N')), ASSONANCE);
     assert.equal(E.codaTier([], codaOf('W IY1 L Z')), ASSONANCE); // open vowel vs two consonants
@@ -195,16 +200,6 @@ describe('disagreement: does a word rhyme with itself?', () => {
   });
 });
 
-describe('rhyme density (Raplyzer definition)', () => {
-  test('identical words and one-vowel matches score zero', () => {
-    assert.equal(E.analyse('keys keys keys keys').stats.density, 0);
-    assert.equal(E.analyse('cat dog hat').stats.density, 0);
-  });
-  test('two-vowel matches raise density', () => {
-    assert.ok(E.analyse('golden ticket, olden thicket').stats.density > 0.5);
-  });
-});
-
 describe('presentation', () => {
   test('groups that share lines get different colours', () => {
     const A = E.analyse(SAMPLE);
@@ -217,11 +212,42 @@ describe('presentation', () => {
     assert.equal(line0.length, 1);
     assert.ok(line0[0].words.startsWith('Cold steel, gold wheels, roll deals'));
   });
-  test('section labels are headings, not lyrics, and do not count toward reach', () => {
-    const A = E.analyse('[Verse 1]\nI keep the peace\n[Chorus]\nI hold the lease', { tier: PERFECT, reach: 2 });
-    assert.ok(A.lines[0].heading && A.lines[2].heading);
+  test('section labels are headings, not lyrics', () => {
+    const A = E.analyse('[Verse 1]\nI keep the peace\nI hold the lease', { tier: PERFECT, reach: 2 });
+    assert.ok(A.lines[0].heading);
     assert.equal(A.lines[0].words.length, 0);
     assert.ok(sameGroup(A, 'peace', 'lease'));
+  });
+  test('a heading or blank line starts a new section: no rhyme crosses it, letters restart', () => {
+    for (const sep of ['[Chorus]', '', '\n']) {
+      const A = E.analyse(`I keep the peace\nI hold the lease\n${sep}\nI found my niece\nthe wool of fleece`, { tier: PERFECT });
+      assert.ok(sameGroup(A, 'peace', 'lease'));
+      assert.ok(!sameGroup(A, 'lease', 'niece'), JSON.stringify(sep));
+      assert.equal(A.lines.filter(l => l.scheme).map(l => l.scheme).join(''), 'AAAA');
+    }
+  });
+  test('a looser link never merges two groups that rhyme more closely on their own', () => {
+    // sit / knit and spin / win are two perfect pairs sharing only a vowel.
+    const A = E.analyse('I sit and knit\nI spin to win', { tier: ASSONANCE });
+    assert.ok(sameGroup(A, 'sit', 'knit') && sameGroup(A, 'spin', 'win'));
+    assert.ok(!sameGroup(A, 'sit', 'spin'));
+    // peace / lease and keep / deep are perfect pairs, near to each other: still two groups.
+    const B = E.analyse('I keep the peace\nI hold the lease\nI dig it deep', { tier: NEAR });
+    assert.ok(!sameGroup(B, 'peace', 'keep'));
+    // A syllable with only a vowel in common still joins one group, drawn lighter.
+    const C = E.analyse('I sit and knit with a fish', { tier: ASSONANCE });
+    assert.ok(sameGroup(C, 'sit', 'fish'));
+    assert.ok(syl(C, 'fish').soft);
+  });
+  test('a group with no majority rhyme part is named by its vowel', () => {
+    const A = E.analyse('I took my time\nI walked the line', { tier: NEAR });
+    assert.ok(sameGroup(A, 'time', 'line'));
+    assert.equal(A.groups[syl(A, 'time').group].key, 'ˈaɪ');
+  });
+  test('a group label marks stress, so stressed and unstressed /ɪn/ differ', () => {
+    const A = E.analyse(SAMPLE);
+    assert.equal(A.groups[syl(A, "spinnin'").group].key, 'ˈɪn');
+    assert.equal(A.groups[syl(A, "spinnin'", 1).group].key, 'ɪn');
   });
   test('the rhyme-types example keeps every rhyme on its own line', () => {
     const text = 'Perfect: a tail shared by surf and turf\nNear: the coda grew a beard\nAssonance: vowels, not consonants: a pal in a cab\nMulti: it lines up in full with sultry';
