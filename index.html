@@ -16,6 +16,9 @@
   --ground: #0d0e11;      /* page */
   --sheet: #15171c;       /* cards */
   --sheet-2: #1a1d23;     /* menus, raised */
+  --band: #1a1c22;        /* the song header band */
+  --band-rule: #2c3038;
+  --band-inset: #111317;  /* controls set into the band */
   --ink: #ecedef;
   --ink-2: #a3a9b3;
   --ink-3: #8a909b;
@@ -39,6 +42,7 @@
 }
 :root[data-theme="light"] {
   --ground: #f6f7f9; --sheet: #ffffff; --sheet-2: #ffffff; --ink: #15171c; --ink-2: #4f5663; --ink-3: #697080;
+  --band: #e9ecf1; --band-rule: #d5d9e0; --band-inset: #ffffff;
   --rule: #e2e5ea; --rule-2: #d3d7de; --accent: #2f62d8; --accent-ink: #ffffff; --on-fill: #12151b;
   --tint-l: 0.5; --tint-c: 0.15;
   --chip-l: 0.87; --chip-c: 0.09; --on-chip: #12151b;
@@ -53,6 +57,7 @@ html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; background: var(--ground); color: var(--ink);
   font: 14.5px/1.5 var(--f-ui);
+  overflow-x: clip; /* the header band reaches the window edges */
 }
 .page {
   max-width: 1440px; margin: 0 auto;
@@ -69,7 +74,7 @@ a { color: var(--accent); }
 /* ---------- top bar ---------- */
 .top {
   display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap;
-  padding: 14px 0; border-bottom: 1px solid var(--rule);
+  padding: 14px 0;
 }
 .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
 .brand h1 { margin: 0; font: 600 15px/1 var(--f-mono); letter-spacing: -0.01em; }
@@ -104,8 +109,8 @@ select.ghost { appearance: none; padding-right: 30px; background-image: linear-g
 .finder-box input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 8px 0; font-size: 15px; outline: none; }
 .finder-box input::-webkit-search-cancel-button { cursor: pointer; }
 .finder-box .primary { height: 34px; padding: 0 14px; flex: none; font-size: 13.5px; }
-.intro { margin: 10px 0 0; font-size: 13px; color: var(--ink-3); }
-.intro a { color: var(--ink-2); }
+.intro { margin: 0; font-size: 13px; color: var(--ink-2); max-width: 110ch; }
+.intro a { color: var(--ink); }
 .intro.err { color: var(--ink); }
 .results {
   position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 6px); margin: 0; padding: 6px; list-style: none;
@@ -121,26 +126,43 @@ select.ghost { appearance: none; padding-right: 30px; background-image: linear-g
 .results .msg { display: block; color: var(--ink-2); cursor: default; }
 .results .msg:hover { background: none; }
 
-/* ---------- song header + settings ---------- */
-.songhead { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 48px; padding: 22px 0 18px; }
-.songhead .title { flex: 1 1 280px; min-width: 0; }
-.songhead h2 { margin: 0; font: 600 26px/1.15 var(--f-head); letter-spacing: -0.02em; overflow-wrap: anywhere; }
+/* ---------- song header + settings: one band, edge to edge ---------- */
+.band {
+  margin: 0 calc(50% - 50vw) 18px; padding: 16px calc(50vw - 50%) 0;
+  background: var(--band); border-block: 1px solid var(--band-rule);
+}
+.songhead { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 18px 48px; padding: 20px 0 18px; }
+.songhead .title { flex: 1 1 280px; min-width: 0; align-self: center; }
+.songhead h2 { margin: 0; font: 600 28px/1.15 var(--f-head); letter-spacing: -0.02em; overflow-wrap: anywhere; }
 .songhead .meta { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
-.readings { margin: 0; display: flex; flex-wrap: wrap; gap: 14px 48px; }
-.readings dt { font-size: 12px; color: var(--ink-2); }
-.readings dd { margin: 4px 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
-.readings b { font: 600 22px/1.1 var(--f-mono); font-variant-numeric: tabular-nums; }
+.readings { margin: 0; display: flex; flex-wrap: wrap; gap: 14px 40px; }
+.readings > div { min-width: 0; }
+.readings dt { font: 500 11px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.readings dd { margin: 8px 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.readings b { font: 600 24px/1.1 var(--f-mono); font-variant-numeric: tabular-nums; }
 .readings small { font-size: 12px; color: var(--ink-3); }
-.reading-multi { max-width: 520px; }
-.linkish { border: 0; background: none; padding: 0; color: var(--accent); font-size: 13px; cursor: pointer; text-align: left; }
-.linkish:hover { text-decoration: underline; }
-.linkish:disabled { color: var(--ink-3); cursor: default; text-decoration: none; }
+.meter { display: block; width: 140px; height: 4px; margin-top: 10px; border-radius: 2px; background: var(--band-rule); overflow: hidden; }
+.meter i { display: block; height: 100%; border-radius: 2px; background: var(--ink-2); }
+.reading-multi { max-width: 480px; }
+/* the longest rhyme's two halves, underlined in that rhyme's own colour as in the verse */
+.phrases { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 10px; font: 13px/1.7 var(--f-mono); color: var(--ink); }
+.phrases .phr { border-bottom: 2px solid oklch(var(--run-l) var(--run-c) var(--rh, 50)); }
+.phrases .arr { color: var(--ink-3); }
+.phrases.none { font-family: var(--f-ui); color: var(--ink-3); }
+.show-btn {
+  height: 28px; padding: 0 10px; border-radius: 7px; border: 1px solid var(--band-rule);
+  background: var(--band-inset); color: var(--ink); font-size: 12.5px; cursor: pointer; align-self: center;
+}
+.show-btn:hover { border-color: var(--ink-3); }
+.show-btn[hidden] { display: none; }
 
 .toolbar {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 32px; padding: 10px 0;
-  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin-bottom: 18px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 32px; padding: 12px 0 14px;
+  border-top: 1px solid var(--band-rule);
   font-size: 13px; color: var(--ink-2);
 }
+.band .seg { background: var(--band-inset); border-color: var(--band-rule); }
+:root[data-theme="light"] .band .seg button[aria-pressed="true"] { background: var(--band); box-shadow: none; }
 .tool { display: flex; align-items: center; gap: 10px; }
 .tool.tier { flex-wrap: wrap; }
 .tool-note { margin: 0; font-size: 12px; color: var(--ink-3); max-width: 34ch; }
@@ -523,6 +545,7 @@ kbd { font: 11.5px var(--f-mono); padding: 1px 5px; border: 1px solid var(--rule
       </button>
     </div>
   </header>
+  <div class="band">
   <p class="intro" id="finderNote">See every rhyme in a song, syllable by syllable, including the multisyllabic, internal and slant rhymes that end-rhyme checkers miss. Lyrics come from <a href="https://lrclib.net" target="_blank" rel="noopener">LRCLIB</a>, a free community database. You can also paste your own with Edit text.</p>
 
   <section class="songhead" aria-label="Song">
@@ -534,10 +557,12 @@ kbd { font: 11.5px var(--f-mono); padding: 1px 5px; border: 1px solid var(--rule
       <div>
         <dt>Syllables that rhyme</dt>
         <dd><b id="rShare">–</b><small id="rShareSub"></small></dd>
+        <dd><span class="meter" aria-hidden="true"><i id="rShareBar" style="width:0"></i></span></dd>
       </div>
       <div class="reading-multi">
         <dt>Longest multisyllabic rhyme</dt>
-        <dd><b id="rMulti">–</b><button type="button" class="linkish" id="rLongest" title="Show this rhyme in the verse"><span id="rMultiSub"></span></button></dd>
+        <dd><b id="rMulti">–</b><button type="button" class="show-btn" id="rLongest" title="Show this rhyme in the verse">Show in verse ↓</button></dd>
+        <dd class="phrases" id="rMultiSub"></dd>
       </div>
     </dl>
   </section>
@@ -563,6 +588,7 @@ kbd { font: 11.5px var(--f-mono); padding: 1px 5px; border: 1px solid var(--rule
       <span>A word rhymes with itself</span>
     </label>
   </section>
+  </div>
 
   <div class="grid" id="grid">
     <nav class="secnav" id="secnav" aria-label="Sections" hidden>
@@ -1029,16 +1055,23 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     const s = state.song;
     $('songMeta').textContent = s ? `${s.artist}${s.album ? ' · ' + s.album : ''} · ${counts}` : counts;
     $('rShare').textContent = st.syllables ? Math.round(100 * st.share) + '%' : '–';
-    $('rShareSub').textContent = st.syllables ? `${st.rhyming} of ${st.syllables}` + (st.guessed ? ` · ${st.guessed} word${st.guessed === 1 ? '' : 's'} guessed` : '') : '';
+    $('rShareSub').textContent = st.syllables ? `${st.rhyming} of ${st.syllables} syllables` + (st.guessed ? ` · ${st.guessed} word${st.guessed === 1 ? '' : 's'} guessed` : '') : '';
+    $('rShareBar').style.width = Math.round(100 * st.share) + '%';
 
+    const sub = $('rMultiSub');
     if (st.longest) {
+      const m = A.multis.find(x => x.spans.some(sp => st.longest.aId >= sp.first && st.longest.aId <= sp.last));
       $('rMulti').textContent = st.longest.len + ' syllables';
-      $('rLongest').disabled = false;
-      $('rMultiSub').textContent = `${st.longest.a} ↔ ${st.longest.b}`;
+      $('rLongest').hidden = false;
+      sub.className = 'phrases';
+      sub.setAttribute('style', m ? runOf(m) : runVars(0));
+      sub.innerHTML = `<span class="phr">${esc(st.longest.a)}</span><span class="arr" aria-label="rhymes with">↔</span><span class="phr">${esc(st.longest.b)}</span>`;
     } else {
       $('rMulti').textContent = 'None';
-      $('rLongest').disabled = true;
-      $('rMultiSub').textContent = 'no run of two or more rhyming syllables';
+      $('rLongest').hidden = true;
+      sub.className = 'phrases none';
+      sub.removeAttribute('style');
+      sub.textContent = 'No run of two or more rhyming syllables at this setting.';
     }
   }
 
