@@ -867,7 +867,26 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
         const k = (r.trackName + '|' + r.artistName).toLowerCase().replace(/[^a-z0-9|]/g, '');
         if (seen.has(k)) return false;
         seen.add(k); return true;
-      }).slice(0, 8);
+      });
+      // LRCLIB returns matches unranked. Prefer entries whose artist and title contain the
+      // query's words, and push re-uploads ("[Lyrics]", karaoke, covers) down.
+      const words = query.toLowerCase().split(/[^a-z0-9']+/).filter(w => w.length > 1);
+      const norm = t => (t || '').toLowerCase();
+      const rank = r => {
+        const artist = norm(r.artistName), track = norm(r.trackName);
+        let sc = 0;
+        words.forEach(w => { if (artist.includes(w)) sc += 3; if (track.includes(w)) sc += 2; });
+        if (/[\[(](lyrics?|lyric video|karaoke|instrumental|cover|remix|sped up|slowed)[\])]|karaoke|\blyrics\b/.test(track)) sc -= 6;
+        if (/ - /.test(track) && !/ - /.test(query)) sc -= 3; // "Song - Artist" style re-uploads
+        if (/official|music video|\baudio\b|\bvideo\b|_/.test(track)) sc -= 5;
+        if (/- topic$|vevo$/.test(artist)) sc -= 2;
+        const artistWords = artist.split(/[^a-z0-9']+/).filter(w => w.length > 2);
+        if (artistWords.length && artistWords.every(w => track.includes(w))) sc -= 3; // artist repeated in title
+        const q = ' ' + words.join(' ') + ' ', t = ' ' + track.replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+        if (t.trim() && q.includes(t)) sc += 4; // the title is exactly part of the query
+        return sc;
+      };
+      found = found.map((r, i) => ({ r, i, sc: rank(r) })).sort((x, y) => y.sc - x.sc || x.i - y.i).map(x => x.r).slice(0, 8);
       active = found.length ? 0 : -1;
       showResults();
       if (explicit && found.length === 1) pick(0);
