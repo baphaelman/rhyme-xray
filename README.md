@@ -91,7 +91,7 @@ Reading the colours:
    Overlapping runs of one pattern on a line are drawn as a single chained underline.
 7. **Groups and colours.** Every link (single or inside a multi) joins a group. Groups
    that sit within reach of each other get different colours from a 14-colour palette.
-8. **Readings.** Share of syllables that rhyme, number of groups, the longest
+8. **Readings.** Share of syllables that rhyme, the longest
    multisyllabic rhyme, and Raplyzer's rhyme density.
 
 ## Where the sources agree, and where they don't
