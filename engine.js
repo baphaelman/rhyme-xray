@@ -78,8 +78,6 @@
     "tryna": ['T R AY1 N AH0', 'trying to'], "y'all": ['Y AO1 L', 'you all'], "nah": ['N AA1', 'no'],
     "gon": ['G AA1 N', 'going'], "ol'": ['OW1 L', 'old'], "o'": ['AH0', 'of'], "'n'": ['AH0 N', 'and'],
     "n'": ['AH0 N', 'and'], "thru": ['TH R UW1', 'through'], "wit": ['W IH1 TH', 'with'],
-    // "perfect" as the adjective (PER-fect), not the dictionary's first entry, the verb per-FECT.
-    "perfect": ['P ER1 F IH0 K T', null],
     "yo": ['Y OW1', null], "assonance": ['AE1 S AH0 N AH0 N S', null], "assonant": ['AE1 S AH0 N AH0 N T', null], "ain't": ['EY1 N T', null], "nothin": ['N AH1 TH IH0 N', 'nothing']
   };
 
@@ -179,6 +177,42 @@
     pronCache.set(w, r);
     return r;
   }
+  /** Other dictionary readings of a word: "record(2)", "record(3)"… */
+  function alternatives(w, first) {
+    const out = [];
+    for (let k = 2; k <= 4; k++) {
+      const d = lookup(w + '(' + k + ')');
+      if (d && d !== first && !out.includes(d)) out.push(d);
+    }
+    return out;
+  }
+
+  // ---------------------------------------------------------------- choosing a reading
+  // Words that change with grammar. Stress-shift pairs (REcord / reCORD, PERfect / perFECT)
+  // are found automatically; these change a vowel or a final consonant instead.
+  const POS_FORMS = {
+    live: { verb: /IH1/, other: /AY1/ }, lead: { verb: /IY1/, other: /EH1/ },
+    wind: { verb: /AY1/, other: /IH1/ }, close: { verb: /Z$/, other: /S$/ },
+    use: { verb: /Z$/, other: /S$/ }, excuse: { verb: /Z$/, other: /S$/ },
+    abuse: { verb: /Z$/, other: /S$/ }, house: { verb: /Z$/, other: /S$/ }
+  };
+  const VERB_BEFORE = new Set(("to will would can could should must might may shall i you we they " +
+    "don't didn't doesn't won't can't cannot never gonna wanna tryna let's i'll you'll we'll they'll " +
+    "he'll she'll i'd you'd we'd they'd please").split(' '));
+  const NOUN_BEFORE = new Set(("a an the my your his her its our their this these those every no some any " +
+    "of in on at for from by so very too more most is was are be been it's that's he's she's").split(' '));
+  const OBJECT_AFTER = new Set('the a an my your his her our their it me him them us'.split(' '));
+
+  /** "verb" | "noun" | null, from the words either side (not across punctuation). */
+  function grammarCue(prev, next, gapPrev, gapNext) {
+    if (prev && !/[,.;:!?]/.test(gapPrev)) {
+      if (VERB_BEFORE.has(prev.key)) return { cue: 'verb', word: prev.text, side: 'after' };
+      if (NOUN_BEFORE.has(prev.key)) return { cue: 'noun', word: prev.text, side: 'after' };
+    }
+    if (next && !/[,.;:!?]/.test(gapNext) && OBJECT_AFTER.has(next.key)) return { cue: 'verb', word: next.text, side: 'before' };
+    return null;
+  }
+
   function pronounceUncached(w) {
     const bare = w.replace(/^'+|'+$/g, '');
     if (/^\d+$/.test(bare) && bare.length <= 4) {
@@ -189,7 +223,10 @@
     }
     if (!/[a-z]/.test(bare) || /\d/.test(bare)) return null;
     for (const c of [w, bare]) if (has.call(OVERRIDES, c)) return { ph: OVERRIDES[c][0], src: 'norm', as: OVERRIDES[c][1] };
-    for (const c of [w, bare]) { const d = lookup(c); if (d) return { ph: d, src: 'dict', as: null }; }
+    for (const c of [w, bare]) {
+      const d = lookup(c);
+      if (d) return { ph: d, src: 'dict', as: null, alts: STOP.has(bare) ? [] : alternatives(c, d) };
+    }
     const n = normalise(bare);
     if (n) return { ph: n[0], src: 'norm', as: n[1] };
     const parts = bare.split("'").filter(Boolean);
@@ -359,19 +396,142 @@
     return lines;
   }
 
+  /** Matching fields every syllable needs: reduced vowel, vowel class. */
+  function prep(s) {
+    // The dictionary puts secondary stress on some weak vowels ("per-ˌfect"); in speech
+    // they are unstressed.
+    if (s.stress === 2 && REDUCED.has(s.vowel)) {
+      s.stress = 0;
+      s.arpabet = s.arpabet.replace(new RegExp('\\b' + s.vowel + '2\\b'), s.vowel + '0');
+    }
+    s.reduced = s.stress === 0 && REDUCED.has(s.vowel);
+    // Unstressed AH/IH/UH are all heard as schwa; unstressed ER keeps its r-colour.
+    s.vclass = s.reduced ? (s.vowel === 'ER' ? '@R' : '@') : (VNORM[s.vowel] || s.vowel);
+    return s;
+  }
+  function wordIPA(syls) {
+    return syls.map(s => (s.stress === 1 && syls.length > 1 ? 'ˈ' : s.stress === 2 ? 'ˌ' : '') + toIPA(s.arpabet)).join('.');
+  }
+
+  /**
+   * Pick a reading for every word that has several (8,444 CMU words do).
+   * 1. Grammar: stress-shift pairs take the verb reading after "to", "I", "will"…
+   *    or before an object ("record it"), and the noun/adjective reading after "a",
+   *    "the", "so", "is"… With no cue, the noun/adjective reading, which is more common.
+   *    POS_FORMS covers pairs that change a vowel or final consonant (live, lead, close).
+   * 2. Rhyme: if another reading makes a perfect or near rhyme within reach that the
+   *    grammatical one does not, use it. Rappers bend words this way, and it is the only
+   *    way to tell present "read" from past "read".
+   */
+  function chooseReadings(lines, opt) {
+    const words = [];
+    for (const L of lines) {
+      L.words.forEach((W, i) => {
+        const pr = pronounce(W.text);
+        W.syls = [];
+        W.cands = null;
+        if (!pr) return;
+        W.src = pr.src; W.as = pr.as;
+        W.key = W.text.toLowerCase().replace(/[’‘`]/g, "'").replace(/^'+|'+$/g, '');
+        W.line = L.n;
+        W.cands = [pr.ph].concat(pr.alts || []);
+        W.candSyls = W.cands.map(ph => syllabify(parsePhones(ph)).map(prep));
+        W.choice = 0;
+        W.reading = null;
+        W.cued = false;
+        if (W.cands.length > 1) {
+          const prev = L.words[i - 1], next = L.words[i + 1];
+          const cue = grammarCue(prev && prev.key ? prev : prev && { key: prev.text.toLowerCase(), text: prev.text },
+            next && { key: next.text.toLowerCase().replace(/[’‘`]/g, "'"), text: next.text },
+            prev ? L.raw.slice(prev.e, W.s) : '', next ? L.raw.slice(W.e, next.s) : '');
+          const stressAt = W.candSyls.map(sy => sy.findIndex(x => x.stress === 1));
+          const forms = POS_FORMS[W.key];
+          if (forms && cue) {
+            const re = cue.cue === 'verb' ? forms.verb : forms.other;
+            const k = W.cands.findIndex(ph => re.test(ph));
+            if (k >= 0) { W.choice = k; W.cued = true; W.reading = `${cue.cue === 'verb' ? 'verb' : 'noun/adjective'} reading, ${cue.side} “${cue.word}”`; }
+          } else if (new Set(stressAt.filter(x => x >= 0)).size > 1) {
+            const order = stressAt.map((x, k) => [x, k]).filter(([x]) => x >= 0);
+            const fore = order.reduce((m, c) => (c[0] < m[0] ? c : m))[1];
+            const back = order.reduce((m, c) => (c[0] > m[0] ? c : m))[1];
+            if (cue) W.cued = true;
+            if (cue && cue.cue === 'verb') { W.choice = back; W.reading = `verb stress, ${cue.side} “${cue.word}”`; }
+            else if (cue) { W.choice = fore; W.reading = `noun/adjective stress, ${cue.side} “${cue.word}”`; }
+            else { W.choice = fore; W.reading = 'the usual noun/adjective stress'; }
+          }
+        }
+        words.push(W);
+      });
+      const withSound = L.words.filter(w => w.cands && w.candSyls[0].length);
+      if (withSound.length) withSound[withSound.length - 1].lineEnd = true;
+    }
+
+    // Rhyme evidence, measured against the other words' current readings.
+    const span = opt.reach - 1;
+    const byLine = new Map();
+    words.forEach(W => {
+      if (W.line < 0) return;
+      const sy = W.candSyls[W.choice];
+      const stop = sy.length === 1 && STOP.has(W.key);
+      sy.forEach((s, k) => {
+        const end = W.lineEnd && k === sy.length - 1;
+        if (stop || !(s.stress > 0 || end)) return;
+        if (!byLine.has(W.line)) byLine.set(W.line, []);
+        byLine.get(W.line).push({ W, s, end });
+      });
+    });
+    words.forEach(W => {
+      if (W.cands.length < 2 || W.line < 0) return;
+      const scored = W.candSyls.map(sy => {
+        let total = 0, best = null;
+        sy.forEach((s, k) => {
+          const end = W.lineEnd && k === sy.length - 1;
+          if (!(s.stress > 0 || end)) return;
+          let top = 0, who = null;
+          for (let l = W.line - span; l <= W.line + span; l++) {
+            for (const p of byLine.get(l) || []) {
+              if (p.W === W || p.W.key === W.key) continue;
+              const t = matchTier(s, p.s);
+              let v = t === PERFECT ? 3 : t === NEAR ? 2 : 0;
+              if (!v) continue;
+              if (end && p.end) v *= 1.5; // end rhymes are deliberate
+              if (v > top) { top = v; who = p; }
+            }
+          }
+          total += top;
+          if (who && (!best || top > best.v)) best = { v: top, p: who };
+        });
+        return { total, best };
+      });
+      // Rhyme must beat the grammatical reading by a near rhyme, or by a perfect or end rhyme
+      // when the grammar was explicit ("I live my life" stays /lɪv/ despite "life").
+      const margin = W.cued ? 3 : 2;
+      let pick = W.choice;
+      scored.forEach((x, k) => { if (x.total >= scored[W.choice].total + margin && x.total > scored[pick].total) pick = k; });
+      if (pick !== W.choice) {
+        W.choice = pick;
+        W.reading = `rhymes with “${scored[pick].best.p.W.text.replace(/[,.;:!?]+$/, '')}”`;
+      } else if (!W.reading) {
+        W.reading = "the dictionary's first reading";
+      }
+    });
+  }
+
   function analyse(text, options) {
     const opt = Object.assign({}, DEFAULTS, options || {});
     const lines = tokenize(text);
     const all = [];
 
-    // 1. pronunciations and syllables
+    // 0. pronunciations, choosing between dictionary readings where a word has several
+    chooseReadings(lines, opt);
+
+    // 1. syllables
     for (const L of lines) {
       for (const W of L.words) {
+        if (!W.cands) continue;
         W.syls = [];
-        const pr = pronounce(W.text);
-        if (!pr) continue;
-        W.src = pr.src; W.as = pr.as; W.arpabet = pr.ph;
-        const sy = syllabify(parsePhones(pr.ph));
+        W.arpabet = W.cands[W.choice];
+        const sy = W.candSyls[W.choice];
         if (!sy.length) continue;
         const seg = segmentLetters(W.text.toLowerCase(), sy.length);
         const bare = W.text.toLowerCase().replace(/[’‘`]/g, "'").replace(/^'+|'+$/g, '');
@@ -381,15 +541,13 @@
             id: all.length, line: L.n, lineIndex: L.index, pos: L.syls.length, word: W, wi: k, nSyl: sy.length,
             cs: W.s + seg[k][0], ce: W.s + seg[k][1]
           });
-          s.reduced = s.stress === 0 && REDUCED.has(s.vowel);
-          // Unstressed AH/IH/UH are all heard as schwa; unstressed ER keeps its r-colour.
-          s.vclass = s.reduced ? (s.vowel === 'ER' ? '@R' : '@') : (VNORM[s.vowel] || s.vowel);
           s.stop = sy.length === 1 && STOP.has(bare);
           s.ipa = toIPA(s.arpabet);
           s.rhyme = rhymeKey(s, true);
           all.push(s); L.syls.push(s); W.syls.push(s);
         });
-        W.ipa = W.syls.map(s => (s.stress === 1 && W.syls.length > 1 ? 'ˈ' : s.stress === 2 ? 'ˌ' : '') + s.ipa).join('.');
+        W.ipa = wordIPA(W.syls);
+        W.altIPA = W.candSyls.filter((_, i) => i !== W.choice).map(wordIPA);
       }
     }
     const body = lines.filter(L => L.n >= 0 && L.syls.length);

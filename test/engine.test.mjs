@@ -73,6 +73,37 @@ describe('pronunciation', () => {
   });
 });
 
+describe('choosing between dictionary readings', () => {
+  const reading = (text, word, nth = 0) => {
+    const ws = E.analyse(text).lines.flatMap(l => l.words).filter(w => w.key === word);
+    return ws[nth].ipa;
+  };
+  test('stress-shift words follow grammar', () => {
+    assert.equal(reading('I want to record a record', 'record', 0), 'ɹə.ˈkɔɹd');
+    assert.equal(reading('I want to record a record', 'record', 1), 'ˈɹɛ.kɚd');
+    assert.equal(reading("it's perfect, I will perfect it", 'perfect', 0), 'ˈpɝ.fɪkt');
+    assert.equal(reading("it's perfect, I will perfect it", 'perfect', 1), 'pɚ.ˈfɛkt');
+    assert.equal(reading('the desert sand, I desert the band', 'desert', 1), 'dɪ.ˈzɝt');
+  });
+  test('with no cue, the noun/adjective stress is used', () => {
+    assert.equal(reading('Perfect: a tail shared by surf and turf', 'perfect'), 'ˈpɝ.fɪkt');
+  });
+  test('vowel-change pairs follow grammar', () => {
+    assert.equal(reading('I live my life on a live show', 'live', 0), 'lɪv');
+    assert.equal(reading('I live my life on a live show', 'live', 1), 'laɪv');
+    assert.equal(reading('the lead singer will lead us', 'lead', 0), 'lɛd');
+    assert.equal(reading('the lead singer will lead us', 'lead', 1), 'lid');
+  });
+  test('rhyme decides what grammar cannot', () => {
+    assert.equal(reading('I read it every week\nthe answers that I seek', 'read'), 'ɹid');
+    assert.equal(reading('I read it in my bed', 'read'), 'ɹɛd');
+    assert.equal(reading('I do it again\nand feel the pain', 'again'), 'ə.ˈɡeɪn');
+  });
+  test('function words keep their usual reading', () => {
+    assert.equal(reading('a day in the sun', 'a'), 'ə');
+  });
+});
+
 describe('match tiers (Pattison taxonomy)', () => {
   test('same vowel and consonants is perfect', () => {
     assert.equal(E.codaTier(codaOf('G R IY1 S'), codaOf('P IY1 S')), PERFECT);

@@ -58,27 +58,40 @@ Reading the colours:
    "spinning" with the g dropped. "tha", "'em", "ya", "imma" and "tryna" are mapped.
    Plurals, -ed, -ing, -er, -ers, -y and -ly are built from their base words. Numbers
    become words.
-2. **Syllables.** Phonemes are split into syllables. A syllable's *rhyme part* is its vowel
+2. **Choosing a reading.** 8,444 dictionary words have more than one pronunciation
+   (REcord / reCORD, live, read, again). The dictionary's first entry is sometimes the
+   noun and sometimes the verb, so it is not trusted blindly:
+   - *Grammar*: stress-shift pairs take the verb stress after "to", "I", "will", "don't"…
+     or before an object ("record it"), and the noun/adjective stress after "a", "the",
+     "so", "is"… With no cue they take the noun/adjective stress, the more common one.
+     A small table does the same for vowel changes (live, lead, wind, close, use).
+   - *Rhyme*: if another reading makes a perfect or near rhyme within reach that the
+     grammatical one does not, it wins. That is how "read" rhymes with "week" in one
+     verse and "bed" in another, and "again" with "pain". An explicit grammar cue needs
+     a perfect or end rhyme to be overruled.
+   - Function words ("a", "the", "to") always keep their usual reading.
+   - The hover card says which reading was used and why.
+3. **Syllables.** Phonemes are split into syllables. A syllable's *rhyme part* is its vowel
    plus every consonant up to the next vowel. A consonant between vowels counts for both
    syllables, which is how "squeal-ers" rhymes with "wheels".
-3. **Tiers** (Pattison's taxonomy):
+4. **Tiers** (Pattison's taxonomy):
    - *Perfect*: same vowel and the same consonants (grease / peace).
    - *Near*: same vowel, and consonants from the same family (stops, fricatives, nasals,
      voicing ignored), or one extra consonant (wheels / squealers, grease / threes, time / line).
    - *Assonance*: same vowel only (sit / spin).
    - The cot/caught vowels are merged. Unstressed /ə/ and /ɪ/ count as one schwa.
-4. **Who is compared on their own.** Stressed syllables of content words, the last
+5. **Who is compared on their own.** Stressed syllables of content words, the last
    syllable of every line, and full unstressed endings like the -y of "sweaty".
    Unstressed function words ("the", "a", "in") are only coloured inside a multi.
-5. **Multisyllabic rhymes.** Two runs of syllables match in order, starting on a stressed
+6. **Multisyllabic rhymes.** Two runs of syllables match in order, starting on a stressed
    syllable on both sides. Stressed positions must match at the chosen tier. Unstressed
    schwas may stand in for each other. One syllable without primary stress may break the
    pattern in the middle (shadow boxing / battle rocking). A run needs at least two
    positions that carry the rhyme. A run that only repeats the same words is ignored.
    Overlapping runs of one pattern on a line are drawn as a single chained underline.
-6. **Groups and colours.** Every link (single or inside a multi) joins a group. Groups
+7. **Groups and colours.** Every link (single or inside a multi) joins a group. Groups
    that sit within reach of each other get different colours from a 14-colour palette.
-7. **Readings.** Share of syllables that rhyme, number of groups, the longest
+8. **Readings.** Share of syllables that rhyme, number of groups, the longest
    multisyllabic rhyme, and Raplyzer's rhyme density.
 
 ## Where the sources agree, and where they don't
@@ -128,8 +141,10 @@ rules. The tests in `test/engine.test.mjs` encode the points they agree on.
 
 ## Known limits
 
-- One pronunciation per word: the dictionary's first entry. Rappers bend vowels ("orange"
-  / "door hinge") and the tool only catches it when the dictionary agrees.
+- Readings come only from the dictionary. Rappers bend vowels further ("orange" /
+  "door hinge") than any listed pronunciation, and those bends are missed.
+- The grammar cues look one word either side. Longer-range grammar ("the records I
+  never *record*") can still pick the wrong stress.
 - The letter-to-syllable mapping is a heuristic. Words with silent letters or syllabic
   consonants can split oddly ("diddly" → did·dl·y).
 - With Assonance on, a dense verse can colour 70% or more of its syllables. That matches

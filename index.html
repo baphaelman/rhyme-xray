@@ -838,6 +838,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     if (inMulti.length) rows += `<dt>Multi</dt><dd>part of a ${Math.max(...inMulti.map(m => m.len))}-syllable rhyme</dd>`;
     if (!g && !inMulti.length) rows += `<dt>Rhymes with</dt><dd>${s.eligible ? 'nothing within reach' : 'not compared alone (unstressed or a function word)'}</dd>`;
     rows += `<dt>Source</dt><dd>${SRC[W.src] || '–'}${W.as ? `, read as “${esc(W.as)}”` : ''}</dd>`;
+    if (W.altIPA && W.altIPA.length) rows += `<dt>Reading</dt><dd>${esc(W.reading || '')}; also <span class="m">/${W.altIPA.map(esc).join('/, /')}/</span></dd>`;
     pop.className = 'pop' + (g ? ' g' : '');
     pop.setAttribute('style', g ? colourVars(g.color) : '');
     pop.innerHTML = `<div class="hd"><span class="w">${esc(W.text)}</span><span class="ipa">/${esc(W.ipa || '')}/</span></div><dl>${rows}</dl>`;
