@@ -9,7 +9,7 @@ rhymes (same vowel, different consonants).
 
 **Try it:** <https://baphaelman.github.io/rhyme-xray/>
 
-The page opens on an MF DOOM bar ("A little grease always keeps the wheels a-spinnin' /
+The page opens on a bar from MF DOOM's "Rapp Snitch Knishes" ("A little grease always keeps the wheels a-spinnin' /
 Like sitting on twenty threes to get the squealers grinnin'"). Its four-syllable rhyme
 "wheels a-spinnin'" ↔ "squealers grinnin'" is exactly what spelling-based checkers miss.
 
@@ -37,7 +37,8 @@ every word is guessed from its spelling instead and results get rougher.
 - **A word rhymes with itself** decides whether repeating a word counts as a rhyme.
 - **Reach** sets how many lines apart two syllables may be and still count as rhyming.
 - **Examples → Rhyme types, one per line** gives one line per type. Each line explains its
-  type, and the type word rhymes in exactly that type ("Near: the coda grew a beard").
+  type, and the type word rhymes in exactly that type ("Perfect: a tail shared by surf and turf",
+  "Near: the coda grew a beard").
   Every other stressed vowel appears only once, so no rhyme crosses lines.
 
 Reading the colours:

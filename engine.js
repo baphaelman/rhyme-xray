@@ -78,6 +78,8 @@
     "tryna": ['T R AY1 N AH0', 'trying to'], "y'all": ['Y AO1 L', 'you all'], "nah": ['N AA1', 'no'],
     "gon": ['G AA1 N', 'going'], "ol'": ['OW1 L', 'old'], "o'": ['AH0', 'of'], "'n'": ['AH0 N', 'and'],
     "n'": ['AH0 N', 'and'], "thru": ['TH R UW1', 'through'], "wit": ['W IH1 TH', 'with'],
+    // "perfect" as the adjective (PER-fect), not the dictionary's first entry, the verb per-FECT.
+    "perfect": ['P ER1 F IH0 K T', null],
     "yo": ['Y OW1', null], "assonance": ['AE1 S AH0 N AH0 N S', null], "assonant": ['AE1 S AH0 N AH0 N T', null], "ain't": ['EY1 N T', null], "nothin": ['N AH1 TH IH0 N', 'nothing']
   };
 
