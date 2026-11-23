@@ -127,7 +127,7 @@ select.ghost { appearance: none; padding-right: 30px; background-image: linear-g
 .results .msg:hover { background: none; }
 
 /* ---------- song header + settings: one band, edge to edge ---------- */
-.band {
+.song-band {
   margin: 0 calc(50% - 50vw) 18px; padding: 16px calc(50vw - 50%) 0;
   background: var(--band); border-block: 1px solid var(--band-rule);
 }
@@ -161,8 +161,8 @@ select.ghost { appearance: none; padding-right: 30px; background-image: linear-g
   border-top: 1px solid var(--band-rule);
   font-size: 13px; color: var(--ink-2);
 }
-.band .seg { background: var(--band-inset); border-color: var(--band-rule); }
-:root[data-theme="light"] .band .seg button[aria-pressed="true"] { background: var(--band); box-shadow: none; }
+.song-band .seg { background: var(--band-inset); border-color: var(--band-rule); }
+:root[data-theme="light"] .song-band .seg button[aria-pressed="true"] { background: var(--band); box-shadow: none; }
 .tool { display: flex; align-items: center; gap: 10px; }
 .tool.tier { flex-wrap: wrap; }
 .tool-note { margin: 0; font-size: 12px; color: var(--ink-3); max-width: 34ch; }
@@ -545,7 +545,7 @@ kbd { font: 11.5px var(--f-mono); padding: 1px 5px; border: 1px solid var(--rule
       </button>
     </div>
   </header>
-  <div class="band">
+  <div class="song-band">
   <p class="intro" id="finderNote">See every rhyme in a song, syllable by syllable, including the multisyllabic, internal and slant rhymes that end-rhyme checkers miss. Lyrics come from <a href="https://lrclib.net" target="_blank" rel="noopener">LRCLIB</a>, a free community database. You can also paste your own with Edit text.</p>
 
   <section class="songhead" aria-label="Song">
