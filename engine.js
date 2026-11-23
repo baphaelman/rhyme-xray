@@ -27,7 +27,10 @@
   // cot–caught merger: most rap is performed in accents where these are one vowel.
   // Not before r: "door" /dɔɹ/ and "car" /kɑɹ/ stay apart in every accent.
   const VNORM = { AO: 'AA' };
-  const normVowel = s => (s.vowel === 'AO' && s.rhymeCons[0] === 'R' ? 'AO' : VNORM[s.vowel] || s.vowel);
+  // Before r the dictionary writes one vowel two ways: "here" /hiɹ/ but "year" /jɪɹ/, "beer"
+  // /bɪɹ/ but "beer's" /biɹz/, "poor" /puɹ/ but "tour" /tʊɹ/. Each pair is one sound.
+  const BEFORE_R = { IY: 'IH', UW: 'UH' };
+  const normVowel = s => (s.rhymeCons[0] === 'R' ? BEFORE_R[s.vowel] || s.vowel : VNORM[s.vowel] || s.vowel);
   // Consonants that sit at the edge of a syllable and do not carry rhyme.
   const GLIDES = new Set(['W', 'Y', 'HH']);
   // Manner families (Pattison's "family rhymes"); voicing is ignored inside a family.
@@ -384,6 +387,37 @@
 
   const DEFAULTS = { tier: ASSONANCE, identical: true, reach: 4, paletteSize: 14, maxLanes: 3 };
 
+  // ---------------------------------------------------------------- ad-libs
+  // Sounds dropped around a bar rather than part of it. Hesitations ("uh", "skrrt") are ad-libs
+  // wherever they sit. Interjections ("yeah", "oh") are ad-libs only at the start or end of a
+  // line and set off by punctuation, so "for years, yeah" drops its "yeah" but "I said yeah"
+  // keeps it. Words in parentheses are backing vocals or ad-libs.
+  const HESITATION = /^(u+h+|u+m+|h+u+h+|h+m+|m+h?m+|u+g+h+|sk+r+t*|b+r+|g+r+|a+y{2,})$/;
+  const INTERJECTION = /^(y+e+a+h*|y+e+h+|y+a+h+|y+u+h+|a+y+e*|a+y+o+|y+o+|h+e+y+|o+h+|a+h+|a+w+|w+h?o+a+h*|w+o+o+|h+a+(h+a+)*h?|s+h+e+e+s+h+)$/;
+  const SET_OFF = /[,;:!?.…—–()-]/;
+
+  /** Mark each word's `adlib`: 'parentheses', 'filler' or null. */
+  function markAdlibs(L) {
+    const ws = L.words;
+    let depth = 0, at = 0;
+    ws.forEach(W => {
+      for (; at < W.s; at++) depth = Math.max(0, depth + (L.raw[at] === '(' ? 1 : L.raw[at] === ')' ? -1 : 0));
+      W.adlib = depth > 0 ? 'parentheses' : HESITATION.test(W.text.toLowerCase().replace(/['’‘`]/g, '')) ? 'filler' : null;
+    });
+    const inter = ws.map(W => INTERJECTION.test(W.text.toLowerCase().replace(/['’‘`]/g, '')));
+    const loose = i => !!ws[i].adlib || inter[i];
+    // punctuation between word i - 1 and word i
+    const setOff = i => SET_OFF.test(L.raw.slice(i > 0 ? ws[i - 1].e : 0, i < ws.length ? ws[i].s : L.raw.length));
+    // a run at the end: "…for years, uh, yeah"
+    let a = ws.length;
+    while (a > 0 && loose(a - 1)) a--;
+    for (let i = a; i < ws.length; i++) if (!ws[i].adlib && (i === 0 || setOff(i) || ws[i - 1].adlib)) ws[i].adlib = 'filler';
+    // a run at the start: "Uh, yeah, I'm back"
+    let b = 0;
+    while (b < ws.length && loose(b)) b++;
+    for (let i = b - 1; i >= 0; i--) if (!ws[i].adlib && (setOff(i + 1) || (i + 1 < ws.length && ws[i + 1].adlib))) ws[i].adlib = 'filler';
+  }
+
   // ---------------------------------------------------------------- analysis
   function tokenize(text) {
     const lines = [];
@@ -401,6 +435,7 @@
       let m;
       wordRe.lastIndex = 0;
       while ((m = wordRe.exec(raw))) L.words.push({ s: m.index, e: m.index + m[0].length, text: m[0] });
+      markAdlibs(L);
       lines.push(L);
     });
     return lines;
@@ -437,9 +472,11 @@
     const words = [];
     for (const L of lines) {
       L.words.forEach((W, i) => {
-        const pr = pronounce(W.text);
         W.syls = [];
         W.cands = null;
+        // Ad-libs get no syllables: they never rhyme and never end the bar.
+        if (W.adlib) return;
+        const pr = pronounce(W.text);
         if (!pr) return;
         W.src = pr.src; W.as = pr.as;
         W.key = W.text.toLowerCase().replace(/[’‘`]/g, "'").replace(/^'+|'+$/g, '');

@@ -189,6 +189,37 @@ describe('consensus: what every method agrees on', () => {
   });
 });
 
+describe('the end of the bar', () => {
+  const words = (A, n) => A.lines[n].words.map(w => (w.adlib ? `[${w.text}]` : w.text)).join(' ');
+  test('a trailing ad-lib is not the end of the bar', () => {
+    const A = E.analyse("Rap snitches, telling all their business\nSit in the court and be their own star witness\nDo you see the perpetrator? Yeah, I'm right here\nFuck around, get the whole label sent up for years, uh");
+    assert.equal(A.lines.map(l => l.scheme).join(''), 'AABB');
+    assert.ok(sameGroup(A, 'here', 'years'));
+    const uh = A.lines[3].words.find(w => w.text === 'uh');
+    assert.equal(uh.adlib, 'filler');
+    assert.equal(uh.syls.length, 0);
+    assert.ok(!A.lines[2].words.find(w => w.text === 'Yeah').adlib); // mid-line, part of the bar
+  });
+  test('interjections are ad-libs only when set off at a line edge', () => {
+    const A = E.analyse("Uh, yeah, I'm back\nI said yeah\nOh my god\nYeah yeah, oh my god, for real, yeah\nI'm the man, uh, for real");
+    assert.equal(words(A, 0), "[Uh] [yeah] I'm back");
+    assert.equal(words(A, 1), 'I said yeah');
+    assert.equal(words(A, 2), 'Oh my god');
+    assert.equal(words(A, 3), '[Yeah] [yeah] oh my god for real [yeah]');
+    assert.equal(words(A, 4), "I'm the man [uh] for real"); // hesitations anywhere
+  });
+  test('words in parentheses are backing vocals, not the bar', () => {
+    const A = E.analyse("Started from the bottom now we're here (now we're here)\nI keep it near (skrrt)", { tier: PERFECT });
+    assert.equal(words(A, 0), "Started from the bottom now we're here [now] [we're] [here]");
+    assert.equal(A.lines[1].syls.at(-1).word.text, 'near');
+    assert.equal(A.lines.map(l => l.scheme).join(''), 'AA');
+  });
+  test('the dictionary\'s two spellings of the vowel before r rhyme perfectly', () => {
+    assert.ok(sameGroup(E.analyse("I'm right here\nthe end is near", { tier: PERFECT }), 'here', 'near'));
+    assert.ok(sameGroup(E.analyse('I am poor\nI went on tour', { tier: PERFECT }), 'poor', 'tour'));
+  });
+});
+
 describe('disagreement: does a word rhyme with itself?', () => {
   // Wadsworth & Needle count "identical rhyme"; Raplyzer scores identical words as 0.
   const refrain = 'I got the keys, I got the keys\nI got the keys, I got the keys';

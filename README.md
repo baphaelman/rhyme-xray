@@ -72,6 +72,7 @@ Reading the colours:
 | Fainter colour | linked by vowel only (assonance) |
 | Underline (or band / outline) | a multisyllabic rhyme; every part of one shares its own colour |
 | Dotted underline | a word not in the dictionary; its sounds were guessed from the spelling |
+| Faded italic word | an ad-lib ("uh", a trailing "yeah", anything in parentheses): not part of the bar, never rhymed |
 | Letter beside the line number | the end-rhyme scheme, coloured like the rhyme it stands for (A, B, …; `x` = the line ending does not rhyme) |
 
 ## How it decides
@@ -103,10 +104,17 @@ Reading the colours:
      voicing ignored), or one extra consonant (wheels / squealers, grease / threes, time / line).
    - *Assonance*: same vowel only (sit / spin).
    - The cot/caught vowels are merged, except before r ("door" does not rhyme with "car"). Unstressed /ə/ and /ɪ/ count as one schwa.
+   - Before r the dictionary writes one vowel two ways ("here" /iɹ/, "year" /ɪɹ/; "poor" /uɹ/,
+     "tour" /ʊɹ/). Each pair counts as one vowel.
 5. **Who is compared on their own.** Stressed syllables of content words, the last
-   syllable of every line, and full unstressed endings like the -y of "sweaty".
+   syllable of every bar, and full unstressed endings like the -y of "sweaty".
    Unstressed function words ("the", "a", "in") are only coloured inside a multi. Two
    syllables are compared only within Reach lines and inside one section.
+   - *Ad-libs* are not part of the bar: they are drawn faded, never compared, and never end
+     a line. They are words in parentheses (backing vocals), hesitations ("uh", "um",
+     "huh", "skrrt", "ayy") wherever they fall, and interjections ("yeah", "oh", "yo",
+     "hey") at the start or end of a line when punctuation sets them off. So "sent up for
+     years, uh" ends on "years", while "I said yeah" keeps its "yeah".
 6. **Multisyllabic rhymes.** Two runs of syllables match in order, starting on a stressed
    syllable on both sides. Stressed positions must match at the chosen tier. Unstressed
    schwas may stand in for each other. One syllable without primary stress may break the
@@ -183,6 +191,10 @@ rules. The tests in `test/engine.test.mjs` encode the points they agree on.
 - Spelling guesses are crude: they only cover what the normalisation rules miss.
 - Inside a section, perfect rhymes still chain from window to window: a verse that keeps
   returning to one rhyme keeps one colour. The group list shows each group's line range.
+- Ad-libs are found by a word list and punctuation. An interjection mid-line ("…perpetrator?
+  Yeah, I'm right here") stays in the bar, an unpunctuated one at a line's end ("I said
+  yeah") is taken as the rhyme word, and tag words after the rhyme ("…, man", "though")
+  still end the bar.
 - Song search depends on LRCLIB's coverage and transcriptions.
 
 ## Develop

@@ -293,6 +293,7 @@ input[type="range"] { accent-color: var(--ink-2); }
 :root[data-colours="ink"] .syl.g { color: var(--on-chip); background: oklch(calc(var(--chip-l) + var(--dl, 0)) var(--chip-c) var(--h)); padding: var(--chip-pad, .15em) 0; }
 :root[data-colours="ink"] .syl.g.soft { color: var(--ink); background: oklch(calc(var(--chip-l) + var(--dl, 0)) var(--chip-c) var(--h) / .42); }
 .w.guess { text-decoration: underline dotted var(--ink-3); text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.w.adlib { color: var(--ink-3); font-style: italic; }
 .sch {
   min-width: 16px; height: 18px; padding: 0 2px; display: inline-grid; place-items: center; border-radius: 4px;
   font: 600 11.5px/1 var(--f-mono); color: var(--ink-3);
@@ -477,6 +478,7 @@ kbd { font: 11.5px var(--f-mono); padding: 1px 5px; border: 1px solid var(--rule
 .cmp.e { box-shadow: inset 0 0 0 1.5px var(--ink-2); }
 .cmp.r { box-shadow: inset 0 -2px 0 var(--ink-3); }
 .cmp.x { color: var(--ink-3); }
+.cmp.a { color: var(--ink-3); font-style: italic; }
 .cmpkey { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--ink-2); margin-top: 8px; }
 .cmpkey i { font-style: normal; font-family: var(--f-mono); padding: 0 4px; border-radius: 3px; }
 .align { display: grid; gap: 4px; justify-content: start; font-family: var(--f-mono); font-size: 13.5px; }
@@ -739,7 +741,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
             <li><b>Near</b>: same vowel; consonants from the same family (stops, fricatives, nasals, ignoring voicing) or one extra consonant (time / line, wheels / squealers).</li>
             <li><b>Assonance</b>: the same vowel alone (sit / spin). Rap analysts treat this as the backbone of modern rhyme, so it counts, but it's drawn lighter.</li>
           </ul>
-          <p>The vowels of "cot" and "caught" count as one, as in most rap accents, except before r: "door" and "car" don't rhyme.</p>
+          <p>The vowels of "cot" and "caught" count as one, as in most rap accents, except before r: "door" and "car" don't rhyme. Before r the dictionary writes one vowel two ways, "here" /iɹ/ and "year" /ɪɹ/, so those count as one too.</p>
           <p>The <b>Rhymes</b> switch above the verse sets the loosest category allowed.</p>
         </div>
         <div class="demo" id="demo-tiers"></div>
@@ -750,7 +752,8 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
       <summary><span class="num">5</span><span class="st">Who gets compared</span><span class="sub">stress decides what can rhyme on its own</span></summary>
       <div class="cols">
         <div class="explain">
-          <p>Only syllables a listener hears as beats are compared on their own: stressed syllables of content words, the last syllable of every line, and full unstressed endings like the -y of "sweaty".</p>
+          <p>Only syllables a listener hears as beats are compared on their own: stressed syllables of content words, the last syllable of every bar, and full unstressed endings like the -y of "sweaty".</p>
+          <p><b>Ad-libs</b> aren't part of the bar, so they're drawn faded and never compared. They are words in parentheses, hesitations like "uh", "um" or "skrrt" wherever they fall, and interjections like "yeah", "oh" or "yo" set off by punctuation at the start or end of a line. In "sent up for years, uh" the bar ends on "years"; "I said yeah" keeps its "yeah".</p>
           <p>Function words ("the", "a", "on") and weak syllables can still be coloured, but only as part of a longer multisyllabic rhyme. Without this rule every "the" would rhyme with every "a".</p>
           <p>Two syllables can link only if they're within <b>Reach</b> lines of each other (four by default) and in the same section. A blank line or a heading like [Chorus] starts a new section.</p>
         </div>
@@ -963,6 +966,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     return secs;
   }
 
+  const ADLIB = { parentheses: 'In parentheses (a backing vocal or ad-lib)', filler: 'Ad-lib' };
   const schemeHTML = L => !L.scheme ? ''
     : L.scheme === 'x' ? '<span class="sch" title="Line ending does not rhyme">x</span>'
     : `<span class="sch g" style="${colourVars(L.schemeColor)}" data-scheme-g="${L.syls[L.syls.length - 1].group}" title="End rhyme ${L.scheme}: click to step through the lines in this group">${L.scheme}</span>`;
@@ -1010,7 +1014,9 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
             p = s.ce;
           }
           w += esc(L.raw.slice(p, W.e));
-          out += `<span class="w${W.src === 'guess' ? ' guess' : ''}">${w}</span>`;
+          out += W.adlib
+            ? `<span class="w adlib" title="${ADLIB[W.adlib]}: not part of the bar, so it doesn't rhyme or end the line">${w}</span>`
+            : `<span class="w${W.src === 'guess' ? ' guess' : ''}">${w}</span>`;
           pos = W.e;
         }
         out += esc(L.raw.slice(pos));
@@ -1340,18 +1346,24 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   }
 
   function demoCompare(A) {
-    const lines = A.lines.filter(L => L.syls.length).slice(0, 2);
+    let lines = A.lines.filter(L => L.syls.length).slice(0, 2);
     if (!lines.length) return DEMO + '<p class="none">Paste a verse to see which syllables are compared.</p>';
+    // The second line shown is the first with an ad-lib, when the verse has one.
+    const withAdlib = A.lines.find(L => L.syls.length && L.words.some(W => W.adlib));
+    if (withAdlib && !lines.includes(withAdlib)) lines = [lines[0], withAdlib];
     const kind = s => (s.eligible ? 'e' : s.group != null ? 'r' : 'x');
     let html = '';
     lines.forEach(L => {
       let out = '', pos = 0;
-      L.syls.forEach(s => { out += esc(L.raw.slice(pos, s.cs)) + `<span class="cmp ${kind(s)}">${esc(L.raw.slice(s.cs, s.ce))}</span>`; pos = s.ce; });
+      const mark = (s, e, k) => { out += esc(L.raw.slice(pos, s)) + `<span class="cmp ${k}">${esc(L.raw.slice(s, e))}</span>`; pos = e; };
+      L.words.forEach(W => (W.adlib ? mark(W.s, W.e, 'a') : W.syls.forEach(s => mark(s.cs, s.ce, kind(s)))));
       html += `<div class="cmpline">${out}${esc(L.raw.slice(pos))}</div>`;
     });
     const n = { e: 0, r: 0, x: 0 };
     A.syllables.forEach(s => n[kind(s)]++);
-    return DEMO + html + `<div class="cmpkey"><span><i class="cmp e">box</i> compared on its own: ${n.e}</span><span><i class="cmp r">line</i> only inside a multi: ${n.r}</span><span><i class="cmp x">grey</i> not compared: ${n.x}</span></div>`;
+    const adlibs = A.lines.reduce((k, L) => k + L.words.filter(W => W.adlib).length, 0);
+    return DEMO + html + `<div class="cmpkey"><span><i class="cmp e">box</i> compared on its own: ${n.e}</span><span><i class="cmp r">line</i> only inside a multi: ${n.r}</span><span><i class="cmp x">grey</i> not compared: ${n.x}</span>` +
+      (adlibs ? `<span><i class="cmp a">uh</i> ad-lib, left out of the bar: ${adlibs}</span>` : '') + '</div>';
   }
 
   function demoMulti(A) {
