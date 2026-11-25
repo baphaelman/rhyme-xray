@@ -300,6 +300,8 @@ input[type="range"] { accent-color: var(--ink-2); }
 }
 .sch.g { cursor: pointer; color: oklch(calc(var(--tint-l) + var(--dl, 0)) var(--tint-c) var(--h)); }
 :root[data-colours="ink"] .sch.g { color: var(--on-chip); background: oklch(calc(var(--chip-l) + var(--dl, 0)) var(--chip-c) var(--h)); padding: 0 4px; }
+.lyric.focus .sch.g:not(.on) { opacity: .35; }
+.lyric.focus .sch.g.on { box-shadow: 0 0 0 1.5px oklch(var(--run-l) var(--run-c) var(--h)); }
 
 /* multisyllabic rhymes: one colour per set, drawn as a band, an underline or an outline */
 .bar { position: absolute; pointer-events: none; transition: opacity .15s ease; }
@@ -676,7 +678,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
         <div id="inspBody"><p class="empty">Hover, tap or Tab to a syllable to see its sounds. Click it to pin it here.</p></div>
       </section>
       <section class="panel list-panel" aria-labelledby="h-groups">
-        <h2 id="h-groups">Rhyme groups <small>click to isolate</small></h2>
+        <h2 id="h-groups">Rhyme groups <small>hover to preview, click to isolate</small></h2>
         <ul class="list" id="groupList"></ul>
       </section>
       <section class="panel list-panel" aria-labelledby="h-multis">
@@ -725,6 +727,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
         <div class="explain">
           <p>Each word's sounds are split into syllables, one vowel each. A syllable's <b>rhyme part</b> is its vowel plus every consonant up to the next vowel. A consonant between two vowels counts for both syllables, which is how "squeal-ers" can rhyme with "wheels".</p>
           <p>Stress matters too. The dictionary marks each vowel as stressed, lightly stressed or unstressed. Unstressed /ə/, /ɪ/ and /ʊ/ all sound like a schwa, so they count as one sound.</p>
+          <p><b>Pronouns lean on the word before.</b> The dictionary stresses "it", "him", "her", "them" and "us" as if said alone, but in a verse they're unstressed and join the word before them: "show it" sounds like "poet", "cock it" like "pocket". So they take their weak forms, /ɪt/, /ɪm/, /ɚ/, /ðəm/ and /əs/, and rhyme like a word's last syllable. They keep their full vowel as a second chance, for when a rapper leans on one: "did it" still rhymes with "quit".</p>
           <p>Mapping sounds back onto letters is approximate. It's how the colours land on "spin" and "nin'" rather than on the whole word.</p>
         </div>
         <div class="demo" id="demo-syllables"></div>
@@ -741,7 +744,8 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
             <li><b>Near</b>: same vowel; consonants from the same family (stops, fricatives, nasals, ignoring voicing) or one extra consonant (time / line, wheels / squealers).</li>
             <li><b>Assonance</b>: the same vowel alone (sit / spin). Rap analysts treat this as the backbone of modern rhyme, so it counts, but it's drawn lighter.</li>
           </ul>
-          <p>The vowels of "cot" and "caught" count as one, as in most rap accents, except before r: "door" and "car" don't rhyme. Before r the dictionary writes one vowel two ways, "here" /iɹ/ and "year" /ɪɹ/, so those count as one too.</p>
+          <p><b>One accent for every verse</b>, General American. The vowels of "cot" and "caught" count as one, as in most rap accents, except before r: "door" and "car" don't rhyme. The dictionary is half-merged itself ("caught" /ɑ/ but "taught" /ɔ/), so keeping them apart would follow its quirks, not the rapper. Before r it writes one vowel two ways, "here" /iɹ/ and "year" /ɪɹ/, so those count as one too, and so do "marry" and "merry".</p>
+          <p>The South's "pen" = "pin" is left out. Most rappers keep the two apart: in MCFlow's transcriptions of how each verse is actually performed, T.I. merges them about a third of the time and OutKast never. Accents the X-ray doesn't model still show up as near rhymes or assonance.</p>
           <p>The <b>Rhymes</b> switch above the verse sets the loosest category allowed.</p>
         </div>
         <div class="demo" id="demo-tiers"></div>
@@ -755,6 +759,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
           <p>Only syllables a listener hears as beats are compared on their own: stressed syllables of content words, the last syllable of every bar, and full unstressed endings like the -y of "sweaty".</p>
           <p><b>Ad-libs</b> aren't part of the bar, so they're drawn faded and never compared. They are words in parentheses, hesitations like "uh", "um" or "skrrt" wherever they fall, and interjections like "yeah", "oh" or "yo" set off by punctuation at the start or end of a line. In "sent up for years, uh" the bar ends on "years"; "I said yeah" keeps its "yeah".</p>
           <p>Function words ("the", "a", "on") and weak syllables can still be coloured, but only as part of a longer multisyllabic rhyme. Without this rule every "the" would rhyme with every "a".</p>
+          <p><b>Unstressed endings rhyme only as part of something larger.</b> Two unstressed line endings link when the stressed syllables before them share a vowel ("pock-et" / "cock it"), or when they're the same syllable, consonant and all ("lov-er" / "o-ver"). On their own they don't: "rhymes do not occur between (isolated) unstressed syllables", as Nathaniel Condit-Schultz puts it, so "tak-ing" / "rid-ing" and "it" / "bot-tle" stay apart.</p>
           <p>Two syllables can link only if they're within <b>Reach</b> lines of each other (four by default) and in the same section. A blank line or a heading like [Chorus] starts a new section.</p>
         </div>
         <div class="demo" id="demo-compare"></div>
@@ -780,6 +785,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
           <p>Links, single or inside a multi, join syllables into rhyme groups, closest match first. Groups chain: if A rhymes with B and B with C, all three share a colour. But a looser link never merges two groups that each rhyme more closely on their own, so "peace / lease" and "keep / deep" stay two colours though they share a vowel, and one vowel can't spread across a whole verse. A looser link can still bring a lone syllable into a group.</p>
           <p>A group is named by the rhyme part, in IPA, that most of its members share. If none covers more than half, it's named by the vowel alone. A stress mark shows when most of its syllables are stressed: /ˈɪn/ for "spin / grin", plain /ɪn/ for the unstressed "-nin' / -nin'".</p>
           <p>Colours come from a 14-colour palette built for both light and dark themes. Groups within reach of each other always get different colours. A letter in the margin marks each line's end rhyme, A, B and so on, with <b>x</b> for a line ending that doesn't rhyme. Letters start again at A in each section.</p>
+          <p>Hover a syllable, a letter, a group or a multisyllabic rhyme in the lists, or the longest rhyme above the verse, to light it up in the verse; everything else dims. Click to keep it isolated and step through it line by line.</p>
         </div>
         <div class="demo" id="demo-groups"></div>
       </div>
@@ -797,12 +803,13 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     </details>
 
     <details class="step plain">
-      <summary><span class="num">?</span><span class="st">Where the sources agree, and where they don't</span><span class="sub">why some rules are switches</span></summary>
+      <summary><span class="num">?</span><span class="st">Where the sources agree, and where they don't</span><span class="sub">why some rules are switches, and how the rules are checked</span></summary>
       <div class="cols single">
         <div class="explain">
           <p>Published ways of coding rap rhymes agree that <b>the stressed vowel carries the rhyme</b>. Raplyzer measures nothing else, and the Vox / Martin Connor breakdowns and Wadsworth &amp; Needle treat assonance as rhyme. Hirjee &amp; Brown and the WSJ's <i>Hamilton</i> analysis score vowels first. They also agree that multisyllabic rhymes are matching vowel sequences shown as one unit, and that stress decides which syllables anchor a rhyme.</p>
           <p>They <b>disagree on consonants</b>: Raplyzer ignores them, Hirjee &amp; Brown and the WSJ score them by similarity, and Wadsworth &amp; Needle's main class requires the final consonant. That's why there are three categories. They <b>disagree on repetition</b>: Wadsworth &amp; Needle count an "identical rhyme", while Raplyzer's code scores a repeated word as zero. That's why "A word rhymes with itself" is a switch.</p>
-          <p>Sources: Malmi et al., <a href="https://arxiv.org/abs/1505.04771" target="_blank" rel="noopener">DopeLearning</a> (KDD 2016) and the <a href="https://github.com/ekQ/raplysaattori" target="_blank" rel="noopener">Raplyzer source</a>; Hirjee &amp; Brown, "Using Automated Rhyme Detection to Characterize Rhyming Style in Rap Music", <i>Empirical Musicology Review</i> (2010); Wadsworth &amp; Needle, <a href="https://theory.esm.rochester.edu/integral/?p=6643" target="_blank" rel="noopener">Rhyme, Metrical Tension, and Formal Ambiguity in Kendrick Lamar's Flow</a>, <i>Intégral</i>; Pat Pattison, <i>Writing Better Lyrics</i>.</p>
+          <p><b>Checking the rules.</b> Two sources mark rhymes themselves, so the X-ray is scored against them rather than against our own ears. Byron's <i>Don Juan</i> is written in ottava rima, ABABABCC, so its form says which line endings rhyme: the X-ray finds 77% of the 13,839 pairs it requires (Near setting), including 69% of those ending on a pronoun, such as "a poet" / "to show it". MCFlow, Nathaniel Condit-Schultz's corpus of 124 rap songs, marks every rhyme by hand: at the default setting the X-ray finds 72.5% of its line-end rhymes, and 87% of the line-end rhymes it draws are ones MCFlow marks too.</p>
+          <p>Sources: Malmi et al., <a href="https://arxiv.org/abs/1505.04771" target="_blank" rel="noopener">DopeLearning</a> (KDD 2016) and the <a href="https://github.com/ekQ/raplysaattori" target="_blank" rel="noopener">Raplyzer source</a>; Hirjee &amp; Brown, "Using Automated Rhyme Detection to Characterize Rhyming Style in Rap Music", <i>Empirical Musicology Review</i> (2010); Wadsworth &amp; Needle, <a href="https://theory.esm.rochester.edu/integral/?p=6643" target="_blank" rel="noopener">Rhyme, Metrical Tension, and Formal Ambiguity in Kendrick Lamar's Flow</a>, <i>Intégral</i>; Pat Pattison, <i>Writing Better Lyrics</i>; Nathaniel Condit-Schultz, "MCFlow: A Digital Corpus of Rap Transcriptions", <i>Empirical Musicology Review</i>, and the <a href="https://github.com/Computational-Cognitive-Musicology-Lab/MCFlow" target="_blank" rel="noopener">MCFlow corpus</a>; Lord Byron, <a href="https://www.gutenberg.org/ebooks/21700" target="_blank" rel="noopener"><i>Don Juan</i></a>.</p>
         </div>
       </div>
     </details>
@@ -969,7 +976,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   const ADLIB = { parentheses: 'In parentheses (a backing vocal or ad-lib)', filler: 'Ad-lib' };
   const schemeHTML = L => !L.scheme ? ''
     : L.scheme === 'x' ? '<span class="sch" title="Line ending does not rhyme">x</span>'
-    : `<span class="sch g" style="${colourVars(L.schemeColor)}" data-scheme-g="${L.syls[L.syls.length - 1].group}" title="End rhyme ${L.scheme}: click to step through the lines in this group">${L.scheme}</span>`;
+    : `<span class="sch g" style="${colourVars(L.schemeColor)}" data-scheme-g="${L.syls[L.syls.length - 1].group}" data-end="${L.syls[L.syls.length - 1].id}" title="End rhyme ${L.scheme}: hover to see its rhymes, click to step through them">${L.scheme}</span>`;
 
   function render() {
     hidePop();
@@ -1127,7 +1134,7 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     const secs = state.secs || [];
     const S = secs.length > 1 ? secs.find(x => x.k === state.cur) : null;
     const inSec = s => !S || s.section === S.k;
-    $('h-groups').innerHTML = (S ? 'Groups in ' + esc(S.label) : 'Rhyme groups') + ' <small>click to isolate</small>';
+    $('h-groups').innerHTML = (S ? 'Groups in ' + esc(S.label) : 'Rhyme groups') + ' <small>hover to preview, click to isolate</small>';
     $('h-multis').textContent = S ? 'Multis in ' + S.label : 'Multisyllabic rhymes';
     const gl = $('groupList');
     const groups = A.groups.filter(g => inSec(g.members[0]));
@@ -1219,40 +1226,43 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
   }
 
   // ------------------------------------------------------------ focus (hover / pin)
-  let hoverSid = null;
+  // hoverPin: a group or multi previewed by hovering its letter, its entry in a list or the
+  // longest-rhyme reading; it lights the verse as clicking would, until the pointer leaves.
+  let hoverSid = null, hoverPin = null;
+  // A multi lights its syllables, not just its underline, so its text never looks dimmed.
+  const addMulti = (m, sids, multiIds) => { multiIds.add(m.id); m.spans.forEach(sp => { for (let i = sp.first; i <= sp.last; i++) sids.add(i); }); };
+  function pinSet(A, kind, id) {
+    const sids = new Set(), multiIds = new Set();
+    if (kind === 'group') {
+      const g = A.groups[id]; if (!g) return null;
+      g.members.forEach(m => sids.add(m.id));
+    } else {
+      const m = A.multis.find(x => x.id === id); if (!m) return null;
+      addMulti(m, sids, multiIds);
+    }
+    return { sids, multiIds };
+  }
   function focusSet() {
     const A = state.A;
     if (!A) return null;
-    let sids = null, multiIds = new Set();
+    if (hoverPin) return pinSet(A, hoverPin.kind, hoverPin.id);
     if (hoverSid != null) {
-      const s = A.syllables[hoverSid];
-      if (s.group != null && A.groups[s.group]) sids = new Set(A.groups[s.group].members.map(m => m.id));
-      A.multis.forEach(m => { if (m.spans.some(sp => hoverSid >= sp.first && hoverSid <= sp.last)) multiIds.add(m.id); });
-      if (!sids && !multiIds.size) return null;
-      return { sids: sids || new Set([hoverSid]), multiIds };
+      const s = A.syllables[hoverSid], sids = new Set(), multiIds = new Set();
+      if (s.group != null && A.groups[s.group]) A.groups[s.group].members.forEach(m => sids.add(m.id));
+      A.multis.forEach(m => { if (m.spans.some(sp => hoverSid >= sp.first && hoverSid <= sp.last)) addMulti(m, sids, multiIds); });
+      return sids.size ? { sids, multiIds } : null;
     }
-    if (state.pinned) {
-      if (state.pinned.kind === 'group') {
-        const g = A.groups[state.pinned.id];
-        return g ? { sids: new Set(g.members.map(m => m.id)), multiIds } : null;
-      }
-      const m = A.multis.find(x => x.id === state.pinned.id);
-      if (!m) return null;
-      sids = new Set();
-      m.spans.forEach(sp => { for (let i = sp.first; i <= sp.last; i++) sids.add(i); });
-      multiIds.add(m.id);
-      return { sids, multiIds };
-    }
-    return null;
+    return state.pinned ? pinSet(A, state.pinned.kind, state.pinned.id) : null;
   }
   function applyFocus() {
     const f = focusSet();
     lyric.classList.toggle('focus', !!f);
     lanes.classList.toggle('focus', !!(f && f.multiIds.size) || !!f);
-    lyric.querySelectorAll('.syl.on').forEach(e => e.classList.remove('on'));
+    lyric.querySelectorAll('.syl.on, .sch.on').forEach(e => e.classList.remove('on'));
     lanes.querySelectorAll('.bar.on').forEach(e => e.classList.remove('on'));
     if (!f) { lanes.classList.remove('focus'); return; }
     f.sids.forEach(id => { const e = lyric.querySelector(`[data-sid="${id}"]`); if (e) e.classList.add('on'); });
+    lyric.querySelectorAll('.sch.g').forEach(e => { if (f.sids.has(+e.dataset.end)) e.classList.add('on'); });
     lanes.querySelectorAll('.bar').forEach(b => { if (f.multiIds.has(+b.dataset.multi)) b.classList.add('on'); });
     document.querySelectorAll('[data-pin-group]').forEach(b => b.setAttribute('aria-pressed', String(!!state.pinned && state.pinned.kind === 'group' && state.pinned.id === +b.dataset.pinGroup)));
     document.querySelectorAll('[data-pin-multi]').forEach(b => b.setAttribute('aria-pressed', String(!!state.pinned && state.pinned.kind === 'multi' && state.pinned.id === +b.dataset.pinMulti)));
@@ -1321,7 +1331,25 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
           `<span class="r${g ? ' g' : ''}" style="${g ? colourVars(g.color) : ''}" title="rhyme part">${esc(s.rhyme)}</span><span class="s">${stressName(s)}</span></div>`;
       }).join('');
       return `<div class="sylword"><span class="wl">${esc(wordName(W))}</span><div class="sylboxes">${boxes}</div></div>`;
-    }).join('') + '</div><p class="note">Bottom pill: the rhyme part, coloured if it rhymes with something.</p>';
+    }).join('') + '</div><p class="note">Bottom pill: the rhyme part, coloured if it rhymes with something.</p>' + demoPronouns(A);
+  }
+  // Unstressed pronouns at a line end that rhyme, with the word they lean on.
+  function demoPronouns(A) {
+    const seen = new Set(), rows = [];
+    A.lines.forEach(L => {
+      const s = L.syls[L.syls.length - 1];
+      if (!s || !s.word.full || s.group == null || s.partner == null || rows.length >= 3) return;
+      const ws = L.words.filter(W => W.syls && W.syls.length), i = ws.indexOf(s.word);
+      const phrase = i > 0 ? L.raw.slice(ws[i - 1].s, s.word.e) : s.word.text;
+      // name a rhyme with another word, not the same pronoun on another line
+      const others = A.groups[s.group].members.filter(m => m.lineFinal && m.word.key !== s.word.key)
+        .sort((x, y) => Math.abs(x.line - s.line) - Math.abs(y.line - s.line));
+      const p = others[0] || A.syllables[s.partner];
+      if (seen.has(phrase.toLowerCase())) return;
+      seen.add(phrase.toLowerCase());
+      rows.push(`“${esc(phrase)}” /${esc(s.ipa)}/ rhymes with “${esc(p.word.text.replace(/[,.;:!?]+$/, ''))}”, line ${p.line + 1}`);
+    });
+    return rows.length ? `<p class="note">Unstressed pronouns: ${rows.join('; ')}.</p>` : '';
   }
 
   function demoTiers(A) {
@@ -1451,6 +1479,20 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     hoverSid = null; hidePop(); applyFocus();
     reveal(occ[idx].map(sylEl));
   }
+  // Hovering a group, a multi or the longest-rhyme reading previews it; clicking isolates it.
+  function preview(pin) {
+    if (pin === hoverPin || (pin && hoverPin && pin.kind === hoverPin.kind && pin.id === hoverPin.id)) return;
+    hoverPin = pin;
+    applyFocus();
+  }
+  const longestMulti = () => {
+    const A = state.A, t = A && A.stats.longest && A.stats.longest.aId;
+    return t == null ? null : A.multis.find(x => x.spans.some(sp => t >= sp.first && t <= sp.last));
+  };
+  $('groupList').addEventListener('mouseover', e => { const b = e.target.closest('[data-pin-group]'); preview(b ? { kind: 'group', id: +b.dataset.pinGroup } : null); });
+  $('multiList').addEventListener('mouseover', e => { const b = e.target.closest('[data-pin-multi]'); preview(b ? { kind: 'multi', id: +b.dataset.pinMulti } : null); });
+  $('rLongest').addEventListener('mouseenter', () => { const m = longestMulti(); preview(m ? { kind: 'multi', id: m.id } : null); });
+  ['groupList', 'multiList', 'rLongest'].forEach(id => $(id).addEventListener('mouseleave', () => preview(null)));
   $('groupList').addEventListener('click', e => {
     const b = e.target.closest('[data-pin-group]'); if (b) jump('group', +b.dataset.pinGroup);
   });
@@ -1458,10 +1500,8 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     const b = e.target.closest('[data-pin-multi]'); if (b) jump('multi', +b.dataset.pinMulti);
   });
   $('rLongest').addEventListener('click', () => {
-    const A = state.A; if (!A || !A.stats.longest) return;
-    const target = A.stats.longest.aId;
-    const m = A.multis.find(x => x.spans.some(sp => target >= sp.first && target <= sp.last));
-    if (m) jump('multi', m.id, target);
+    const m = longestMulti();
+    if (m) jump('multi', m.id, state.A.stats.longest.aId);
   });
   lyric.addEventListener('click', e => {
     const c = e.target.closest('.sch.g'); if (!c || c.dataset.schemeG === 'undefined') return;
@@ -1606,7 +1646,18 @@ Like sitting on twenty threes to get the squealers grinnin'</textarea>
     const el = e.target.closest('.syl'); if (!el || !state.A) return;
     hoverSid = +el.dataset.sid; applyFocus(); showPop(el);
   });
-  lyric.addEventListener('mouseleave', () => { if (state.frozen != null) return; hoverSid = null; applyFocus(); hidePop(); });
+  // Hovering an end-rhyme letter previews its group.
+  lyric.addEventListener('mouseover', e => {
+    const c = e.target.closest('.sch.g');
+    const pin = c && c.dataset.schemeG !== 'undefined' ? { kind: 'group', id: +c.dataset.schemeG } : null;
+    if (pin && state.frozen == null && hoverSid != null) { hoverSid = null; hidePop(); }
+    preview(pin);
+  });
+  lyric.addEventListener('mouseleave', () => {
+    hoverPin = null;
+    if (state.frozen != null) { applyFocus(); return; }
+    hoverSid = null; applyFocus(); hidePop();
+  });
   // Clicking a syllable pins its details (so their text can be selected) and isolates its group.
   // Clicking it again, pressing Esc, or clicking elsewhere lets go.
   lyric.addEventListener('click', e => {

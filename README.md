@@ -55,7 +55,9 @@ every word is guessed from its spelling instead and results get rougher.
   longest multi aligned syllable by syllable.
 - Click a rhyme group, a multisyllabic rhyme, an end-rhyme letter in the margin or the
   longest-rhyme reading to isolate it and scroll to it. Click again to step to the next
-  occurrence. Press Esc to clear.
+  occurrence. Press Esc to clear. Hovering any of them previews it the same way, without
+  scrolling: hovering a syllable lights its group and every multisyllabic rhyme it is part
+  of, text and underline.
 - **What counts as a rhyme** sets the loosest match allowed: Perfect, Near or Assonance.
 - **A word rhymes with itself** decides whether repeating a word counts as a rhyme.
 - **Reach** sets how many lines apart two syllables may be and still count as rhyming.
@@ -81,7 +83,11 @@ Reading the colours:
    back to a spelling guess, lyric spellings are normalised. "spinnin'" is read as
    "spinning" with the g dropped. "tha", "'em", "ya", "imma" and "tryna" are mapped.
    Plurals, -ed, -ing, -er, -ers, -y and -ly are built from their base words. Numbers
-   become words.
+   become words. The object pronouns "it", "him", "her", "them" and "us" take their
+   unstressed weak forms (the dictionary lists them as second readings), because that is how
+   they are spoken: "half-cock it" sounds like "pocket". They count as a word's last syllable,
+   not as function words, and keep their full vowel as a second way to rhyme ("quit" / "did
+   it", "fur" / "her").
 2. **Choosing a reading.** 8,444 dictionary words have more than one pronunciation
    (REcord / reCORD, live, read, again). The dictionary's first entry is sometimes the
    noun and sometimes the verb, so it is not trusted blindly:
@@ -105,10 +111,15 @@ Reading the colours:
    - *Assonance*: same vowel only (sit / spin).
    - The cot/caught vowels are merged, except before r ("door" does not rhyme with "car"). Unstressed /ə/ and /ɪ/ count as one schwa.
    - Before r the dictionary writes one vowel two ways ("here" /iɹ/, "year" /ɪɹ/; "poor" /uɹ/,
-     "tour" /ʊɹ/). Each pair counts as one vowel.
+     "tour" /ʊɹ/). Each pair counts as one vowel, and so do "marry" /æɹ/ and "merry" /ɛɹ/, as
+     in most American accents: MCFlow's annotator marks 84% of such pairs as rhymes.
 5. **Who is compared on their own.** Stressed syllables of content words, the last
    syllable of every bar, and full unstressed endings like the -y of "sweaty".
    Unstressed function words ("the", "a", "in") are only coloured inside a multi. Two
+   unstressed syllables rhyme only as part of something larger: when the stressed syllables
+   before them share a vowel ("pock-et" / "cock it"), or when they are the same syllable,
+   consonant and all ("lov-er" / "o-ver"). "Tak-ing" / "rid-ing" do not rhyme, as MCFlow's
+   author puts it (Condit-Schultz 2016, p. 55), and neither do "it" / "bot-tle". Two
    syllables are compared only within Reach lines and inside one section.
    - *Ad-libs* are not part of the bar: they are drawn faded, never compared, and never end
      a line. They are words in parentheses (backing vocals), hesitations ("uh", "um",
@@ -176,11 +187,25 @@ rules. The tests in `test/engine.test.mjs` encode the points they agree on.
 - P. Pattison, *Writing Better Lyrics* (perfect, family, additive / subtractive and
   assonance rhymes).
 - Vox Earworm with Martin Connor, syllable-by-syllable breakdowns of rap rhyme schemes.
+- N. Condit-Schultz, "MCFlow: A Digital Corpus of Rap Transcriptions", *Empirical
+  Musicology Review*, the corpus at
+  <https://github.com/Computational-Cognitive-Musicology-Lab/MCFlow>, and his dissertation
+  (Ohio State, 2016), which describes its rhyme marking and says that "rhymes do not occur
+  between (isolated) unstressed syllables".
+- Lord Byron, *Don Juan* (1819–24), Project Gutenberg #21700: an ottava rima poem, so its
+  form fixes which line endings rhyme.
 
 ## Known limits
 
 - Readings come only from the dictionary. Rappers bend vowels further ("orange" /
   "door hinge") than any listed pronunciation, and those bends are missed.
+- One accent for everyone: General American, with cot/caught and marry/merry merged.
+  Rappers who keep "caught" apart (much of New York) get rhymes they wouldn't make. The
+  dictionary is half-merged itself ("caught" /ɑ/, "taught" /ɔ/), so a cot/caught split
+  would follow its noise, not the rapper; scored against MCFlow, making the pair a near
+  rhyme changed nothing. The pin/pen merger of the South ("ten" / "win") is left out: in
+  MCFlow's transcriptions most rappers keep "pen" apart (T.I. merges 36% of the time,
+  OutKast never), and counting it as near cost more precision than it gained.
 - The grammar cues look one word either side. Longer-range grammar ("the records I
   never *record*") can still pick the wrong stress.
 - The letter-to-syllable mapping is a heuristic. Words with silent letters or syllabic
@@ -207,4 +232,20 @@ npm test
 - `engine.js`: all analysis. Pure functions, no DOM. Loaded as a classic script by the
   page and with `require()` by the tests.
 - `index.html`: the interface (inline CSS and UI script).
-- `test/engine.test.mjs`: unit tests, consensus tests and the identical-rhyme switch.
+- `test/engine.test.mjs`: unit tests, consensus tests, rhymes the ottava rima of Byron's
+  *Don Juan* requires, and the identical-rhyme switch.
+- `test/score.mjs` (`npm run score`, add another `engine.js` to compare): recall against
+  rhymes that sources mark rather than our own judgment. It downloads both once into
+  `.cache/` (gitignored):
+  - every stanza of *Don Juan* (Project Gutenberg), whose ABABABCC form says which line
+    endings rhyme;
+  - [MCFlow](https://github.com/Computational-Cognitive-Musicology-Lab/MCFlow)
+    (N. Condit-Schultz, "MCFlow: A Digital Corpus of Rap Transcriptions", *Empirical
+    Musicology Review*), 124 rap songs with every rhyme marked by hand. It
+    holds lyrics and has no license, so it is never committed.
+
+  With the weak pronouns and the rule for unstressed endings (step 5), at the defaults:
+  the engine finds 69% of *Don Juan*'s required rhymes with a pronoun at a line end (31%
+  before) and 66% of MCFlow's (47% before). It finds 72.5% of all of MCFlow's line-end
+  rhymes, as before (72.6%), and of the line-end pairs it links, 87% are ones MCFlow marks
+  (84% before).

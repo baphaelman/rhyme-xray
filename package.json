@@ -5,7 +5,8 @@
   "description": "Syllable-level rhyme highlighter for rap verses and lyrics",
   "license": "MIT",
   "scripts": {
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "score": "node test/score.mjs"
   },
   "devDependencies": {
     "cmu-pronouncing-dictionary": "3.0.0"

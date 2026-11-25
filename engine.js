@@ -24,12 +24,15 @@
   const VOWELS = new Set(['AA', 'AE', 'AH', 'AO', 'AW', 'AY', 'EH', 'ER', 'EY', 'IH', 'IY', 'OW', 'OY', 'UH', 'UW']);
   // Vowels that collapse towards schwa when unstressed.
   const REDUCED = new Set(['AH', 'IH', 'ER', 'UH']);
-  // cot–caught merger: most rap is performed in accents where these are one vowel.
+  // cot–caught merger: most rap is performed in accents where these are one vowel, and the
+  // dictionary is half-merged itself ("caught", "cost" /ɑ/ but "taught", "lost" /ɔ/).
   // Not before r: "door" /dɔɹ/ and "car" /kɑɹ/ stay apart in every accent.
   const VNORM = { AO: 'AA' };
   // Before r the dictionary writes one vowel two ways: "here" /hiɹ/ but "year" /jɪɹ/, "beer"
-  // /bɪɹ/ but "beer's" /biɹz/, "poor" /puɹ/ but "tour" /tʊɹ/. Each pair is one sound.
-  const BEFORE_R = { IY: 'IH', UW: 'UH' };
+  // /bɪɹ/ but "beer's" /biɹz/, "poor" /puɹ/ but "tour" /tʊɹ/. Each pair is one sound. So are
+  // "marry" /æɹ/ and "merry" /ɛɹ/ in most American accents: MCFlow's annotator marks 84% of
+  // such pairs as rhymes, as often as pairs with one vowel.
+  const BEFORE_R = { IY: 'IH', UW: 'UH', AE: 'EH' };
   const normVowel = s => (s.rhymeCons[0] === 'R' ? BEFORE_R[s.vowel] || s.vowel : VNORM[s.vowel] || s.vowel);
   // Consonants that sit at the edge of a syllable and do not carry rhyme.
   const GLIDES = new Set(['W', 'Y', 'HH']);
@@ -85,6 +88,13 @@
     "n'": ['AH0 N', 'and'], "thru": ['TH R UW1', 'through'], "wit": ['W IH1 TH', 'with'],
     "yo": ['Y OW1', null], "assonance": ['AE1 S AH0 N AH0 N S', null], "assonant": ['AE1 S AH0 N AH0 N T', null], "ain't": ['EY1 N T', null], "nothin": ['N AH1 TH IH0 N', 'nothing']
   };
+  // Object pronouns are unstressed in speech, even at the end of a phrase, and lean on the word
+  // before them: "half-cock it" sounds like "pocket". The dictionary's first reading is the
+  // stressed citation form; these are its weak forms (it lists none for "us", so that one is
+  // written out). They rhyme like the last syllable of a word, not like a function word, and a
+  // rapper can still lean on one: it keeps its full vowel as a second chance to rhyme ("you quit"
+  // / "I did it", "her" / "fur").
+  const WEAK_FORMS = { it: 'it(2)', him: 'him(2)', her: 'her(2)', them: 'them(2)', us: 'AH0 S' };
 
   function normalise(w) {
     let m, d;
@@ -232,6 +242,10 @@
     }
     if (!/[a-z]/.test(bare) || /\d/.test(bare)) return null;
     for (const c of [w, bare]) if (has.call(OVERRIDES, c)) return { ph: OVERRIDES[c][0], src: 'norm', as: OVERRIDES[c][1] };
+    if (has.call(WEAK_FORMS, bare) && lookup(bare)) {
+      const d = lookup(WEAK_FORMS[bare]);
+      return { ph: d || WEAK_FORMS[bare], src: d ? 'dict' : 'norm', as: null, full: lookup(bare) };
+    }
     for (const c of [w, bare]) {
       const d = lookup(c);
       if (d) return { ph: d, src: 'dict', as: null, alts: STOP.has(bare) ? [] : alternatives(c, d) };
@@ -282,6 +296,7 @@
         vowel: ph[v].p,
         stress: ph[v].s < 0 ? 1 : ph[v].s,
         arpabet: ph.slice(from, to).map(x => x.p + (x.s >= 0 ? x.s : '')).join(' '),
+        onset: ph.slice(from, v).map(x => x.p).join(' '),
         rhymeCons
       };
     });
@@ -365,7 +380,7 @@
 
   /** How well two syllables rhyme, as a tier. */
   function matchTier(a, b) {
-    if (a.vclass === b.vclass) return codaTier(a.rhymeCons, b.rhymeCons);
+    if (a.vclass === b.vclass || (a.full && a.full === b.vclass) || (b.full && b.full === a.vclass)) return codaTier(a.rhymeCons, b.rhymeCons);
     if (a.reduced && b.reduced) return WEAK; // two schwas: rhyme only inside a longer chain
     return NONE;
   }
@@ -478,7 +493,7 @@
         if (W.adlib) return;
         const pr = pronounce(W.text);
         if (!pr) return;
-        W.src = pr.src; W.as = pr.as;
+        W.src = pr.src; W.as = pr.as; W.full = pr.full || null;
         W.key = W.text.toLowerCase().replace(/[’‘`]/g, "'").replace(/^'+|'+$/g, '');
         W.line = L.n;
         W.section = L.section;
@@ -592,7 +607,8 @@
             id: all.length, line: L.n, lineIndex: L.index, section: L.section, pos: L.syls.length, word: W, wi: k, nSyl: sy.length,
             cs: W.s + seg[k][0], ce: W.s + seg[k][1]
           });
-          s.stop = sy.length === 1 && STOP.has(bare);
+          s.stop = sy.length === 1 && STOP.has(bare) && !W.full;
+          if (W.full) s.full = normVowel(prep(syllabify(parsePhones(W.full))[0]));
           s.ipa = toIPA(s.arpabet);
           s.rhyme = rhymeKey(s, true);
           all.push(s); L.syls.push(s); W.syls.push(s);
@@ -602,11 +618,16 @@
       }
     }
     const body = lines.filter(L => L.n >= 0 && L.syls.length);
-    body.forEach(L => L.syls.forEach((s, i) => {
-      s.lineFinal = i === L.syls.length - 1;
-      const fullFinal = s.stress === 0 && !s.reduced && s.wi === s.nSyl - 1 && s.nSyl > 1;
-      s.eligible = s.lineFinal || (s.stress > 0 && !s.stop) || fullFinal;
-    }));
+    body.forEach(L => {
+      let stressed = null;
+      L.syls.forEach((s, i) => {
+        s.lineFinal = i === L.syls.length - 1;
+        const fullFinal = s.stress === 0 && !s.reduced && s.wi === s.nSyl - 1 && s.nSyl > 1;
+        s.eligible = s.lineFinal || (s.stress > 0 && !s.stop) || fullFinal;
+        s.lead = stressed; // the nearest stressed syllable before it on the line
+        if (s.stress > 0) stressed = s;
+      });
+    });
 
     const sameWord = (a, b) => a.word.key === b.word.key && a.wi === b.wi;
     const tierOf = (a, b) => (!opt.identical && sameWord(a, b)) ? NONE : matchTier(a, b);
@@ -622,7 +643,16 @@
         if (b.line - a.line > span || b.section !== a.section) break;
         if (a.word === b.word) continue;
         const t = tierOf(a, b);
-        if (t <= opt.tier && t !== WEAK) link(a, b, t);
+        if (t > opt.tier || t === WEAK) continue;
+        // Two unstressed syllables rhyme only as part of something larger: the stressed syllables
+        // before them share a vowel ("pock-et" / "cock it"), or they are the same syllable, onset
+        // and all ("lov-er" / "o-ver"). "Taking" / "riding" don't rhyme (Condit-Schultz 2016), nor
+        // do the schwas of "it" and "bot-tle".
+        if (a.stress === 0 && b.stress === 0 && a.onset !== b.onset) {
+          const u = a.lead && b.lead ? tierOf(a.lead, b.lead) : NONE;
+          if (u > ASSONANCE) continue;
+        }
+        link(a, b, t);
       }
     }
 
