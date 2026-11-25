@@ -56,6 +56,13 @@ describe('pronunciation', () => {
     assert.equal(E.pronounce('2020').as, 'twenty twenty');
   });
 
+  test('object pronouns take their weak form', () => {
+    assert.equal(E.pronounce('it').ph, 'IH0 T');
+    assert.equal(E.toIPA(E.pronounce('them').ph), 'ðəm');
+    assert.equal(E.toIPA(E.pronounce('us').ph), 'əs');
+    assert.equal(E.pronounce('the').ph, 'DH AH0'); // other function words are untouched
+  });
+
   test('unknown words fall back to a spelling guess', () => {
     const p = E.pronounce('glizzy');
     assert.equal(p.src, 'guess');
@@ -118,9 +125,12 @@ describe('match tiers (Pattison taxonomy)', () => {
     assert.equal(E.codaTier(codaOf('W IY1 L Z'), codaOf('S K W IY1 L')), NEAR);    // additive
   });
   test('cot and caught merge, but not before r (door / car)', () => {
-    assert.ok(sameGroup(E.analyse('I got caught\nit was hot', { tier: PERFECT }), 'caught', 'hot'));
+    assert.ok(sameGroup(E.analyse('I got taught\nit was hot', { tier: PERFECT }), 'taught', 'hot')); // /ɔ/ and /ɑ/ in the dictionary
     assert.ok(!sameGroup(E.analyse('I knocked on the door\nI drove the car', { tier: ASSONANCE }), 'door', 'car'));
     assert.ok(sameGroup(E.analyse('I knocked on the door\nI need some more', { tier: PERFECT }), 'door', 'more'));
+  });
+  test('marry and merry rhyme, as in most American accents', () => {
+    assert.ok(sameGroup(E.analyse('it was hard to carry\nand the night was scary', { tier: PERFECT }), 'carry', 'scary'));
   });
   test('unrelated consonants leave only assonance', () => {
     assert.equal(E.codaTier(codaOf('S IH1 T'), codaOf('S P IH1 N')), ASSONANCE);
@@ -217,6 +227,75 @@ describe('the end of the bar', () => {
   test('the dictionary\'s two spellings of the vowel before r rhyme perfectly', () => {
     assert.ok(sameGroup(E.analyse("I'm right here\nthe end is near", { tier: PERFECT }), 'here', 'near'));
     assert.ok(sameGroup(E.analyse('I am poor\nI went on tour', { tier: PERFECT }), 'poor', 'tour'));
+  });
+});
+
+// Byron's Don Juan (1819–24, public domain) is in ottava rima, ABABABCC, so the form says which
+// line endings rhyme. Byron is famous for rhyming a word with a word plus an unstressed pronoun
+// ("a poet" / "to show it"), the way rappers do. Stanzas are cited by canto and number.
+describe('trusted source: rhymes the ottava rima of Don Juan requires', () => {
+  const stanza = lines => E.analyse(lines.join('\n'), { tier: NEAR, reach: 5 });
+  const endsRhyme = (A, i, j) => {
+    const a = A.lines[i].syls.at(-1), b = A.lines[j].syls.at(-1);
+    return a.group != null && a.group === b.group;
+  };
+  const MOSAIC = {
+    'III.78': ['And now they were diverted by their suite,', 'Dwarfs, dancing girls, black eunuchs, and a poet,',
+      'Which made their new establishment complete;', 'The last was of great fame, and liked to show it:',
+      'His verses rarely wanted their due feet;', 'And for his theme—he seldom sung below it,',
+      'He being paid to satirize or flatter,', 'As the psalm says, ‘inditing a good matter.’'],
+    'III.13': ['Yet they were happy,—happy in the illicit', 'Indulgence of their innocent desires;',
+      'But more imprudent grown with every visit,', 'Haidee forgot the island was her sire’s;',
+      'When we have what we like, ’tis hard to miss it,', 'At least in the beginning, ere one tires;',
+      'Thus she came often, not a moment losing,', 'Whilst her piratical papa was cruising.'],
+    'V.41': ['Here their conductor tapping at the wicket', 'Of a small iron door, ’twas open’d, and',
+      'He led them onward, first through a low thicket', 'Flank’d by large groves, which tower’d on either hand:',
+      'They almost lost their way, and had to pick it—', 'For night was closing ere they came to land.',
+      'The eunuch made a sign to those on board,', 'Who row’d off, leaving them without a word.'],
+    'I.98': ['This may seem strange, but yet ’tis very common;', 'For instance—gentlemen, whose ladies take',
+      'Leave to o’erstep the written rights of woman,', 'And break the—Which commandment is ’t they break?',
+      '(I have forgot the number, and think no man', 'Should rashly quote, for fear of a mistake.)',
+      'I say, when these same gentlemen are jealous,', 'They make some blunder, which their ladies tell us.'],
+    'V.79': ['One difficulty still remain’d—his hair', 'Was hardly long enough; but Baba found',
+      'So many false long tresses all to spare,', 'That soon his head was most completely crown’d,',
+      'After the manner then in fashion there;', 'And this addition with such gems was bound',
+      'As suited the ensemble of his toilet,', 'While Baba made him comb his head and oil it.']
+  };
+  test('an unstressed pronoun rhymes as the end of the word before it', () => {
+    const want = { 'III.78': [[1, 3], [3, 5]], 'III.13': [[0, 2], [2, 4]], 'V.41': [[0, 2], [2, 4]], 'I.98': [[6, 7]], 'V.79': [[6, 7]] };
+    for (const [id, pairs] of Object.entries(want)) {
+      const A = stanza(MOSAIC[id]);
+      for (const [i, j] of pairs) assert.ok(endsRhyme(A, i, j), `${id}: lines ${i + 1} and ${j + 1}`);
+    }
+  });
+  test('and the pair is one multisyllabic rhyme: toilet / oil it', () => {
+    const A = stanza(MOSAIC['V.79']);
+    assert.ok(A.spans.some(s => s.text === 'oil it'), A.spans.map(s => s.text).join(', '));
+  });
+  test('two unstressed endings rhyme as a whole: same syllable, or stressed vowels that match', () => {
+    // I.100: "lov-er" / "o-ver" share the whole unstressed syllable, though not the stressed vowel
+    const A = stanza(['Thus parents also are at times short-sighted;', 'Though watchful as the lynx, they ne’er discover,',
+      'The while the wicked world beholds delighted,', 'Young Hopeful’s mistress, or Miss Fanny’s lover,',
+      'Till some confounded escapade has blighted', 'The plan of twenty years, and all is over;']);
+    assert.ok(endsRhyme(A, 1, 3) && endsRhyme(A, 3, 5));
+    // a schwa and nothing else in common is no rhyme
+    const B = E.analyse('I held up the bottle\nyou never could get it', { tier: ASSONANCE });
+    assert.equal(B.lines.map(l => l.scheme).join(''), 'xx');
+  });
+  // Condit-Schultz (MCFlow's author), dissertation p. 55: "rhymes do not occur between (isolated)
+  // unstressed syllables. For example, the words /taking : riding/ don't rhyme".
+  test('taking / riding do not rhyme', () => {
+    assert.equal(E.analyse('I was taking\nI was riding', { tier: PERFECT }).lines.map(l => l.scheme).join(''), 'xx');
+  });
+  test('a pronoun keeps its full vowel for a stressed rhyme', () => {
+    const swim = ['As for the other two, they could not swim,', 'So nobody arrived on shore but him.'];   // II.106
+    const gem = ['Two villainous Cossacques pursued the child', 'With flashing eyes and weapons: match’d with them,',
+      'The rudest brute that roams Siberia’s wild', 'Has feelings pure and polish’d as a gem,—',
+      'The bear is civilised, the wolf is mild;', 'And whom for this at last must we condemn?'];             // VIII.92, lines 1–6
+    assert.ok(endsRhyme(stanza(swim), 0, 1));
+    assert.ok(endsRhyme(stanza(gem), 1, 3) && endsRhyme(stanza(gem), 3, 5));
+    const A = E.analyse('She could not from the spot, and the loud roar\nGrew, and each wave rose roughly, threatening her;\nAnd o’er her upper lip they seem’d to pour,\nUntil she sobb’d for breath, and soon they were', { tier: PERFECT }); // IV.31, lines 3–6
+    assert.ok(endsRhyme(A, 1, 3), 'her / were');
   });
 });
 
